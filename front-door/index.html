@@ -411,6 +411,7 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 .eq-lead{margin:6px 0 16px;font-size:15.5px;color:var(--muted)}
 .eq-row{margin-bottom:12px}
 .eq-row label{display:block;font-weight:600;font-size:15px;margin-bottom:6px}
+.eq-opt{font-weight:400;color:var(--muted);font-size:13.5px}
 .eq-row input,.eq-row select{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:8px;background:var(--surface);font-size:16px}
 .eq-row input:focus,.eq-row select:focus{border-color:var(--accent);outline:none}
 .enquire .btn{width:100%;margin-top:4px}
@@ -632,6 +633,10 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
         <input id="eqPhone" type="tel" inputmode="tel" autocomplete="tel">
       </div>
       <div class="eq-row">
+        <label for="eqEmail">Email <span class="eq-opt">(if you have one — it's how we'll send anything to fill in)</span></label>
+        <input id="eqEmail" type="email" inputmode="email" autocomplete="email">
+      </div>
+      <div class="eq-row">
         <label for="eqWhen">Best time to call you</label>
         <select id="eqWhen">
           <option>Any time</option><option>Morning</option><option>Afternoon</option><option>Evening</option>
@@ -705,6 +710,44 @@ const HOMES = [
 
 /* ---------------- helpers ---------------- */
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------------- provider portal connection ----------------
+   Fill these in once the provider-portal Supabase project exists, then every
+   "Ask to view this" submission lands as a real row in the provider dashboard
+   instead of vanishing. Until then, the form still works for the visitor —
+   it just can't reach a landlord, and says so in the console for whoever's
+   wiring this site up. */
+const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";
+const SUPABASE_CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT");
+
+async function submitEnquiryToPortal(h, { name, phone, email, when }){
+  if(!SUPABASE_CONFIGURED){
+    console.warn("[Front Door] Supabase isn't configured yet (see SUPABASE_URL near the top of this file) — this enquiry was not sent anywhere.");
+    return { ok:false, configured:false };
+  }
+  const headers = { apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}` };
+  try{
+    const lookup = await fetch(`${SUPABASE_URL}/rest/v1/properties?slug=eq.${h.id}&select=id`, { headers });
+    if(!lookup.ok) throw new Error("lookup failed");
+    const rows = await lookup.json();
+    if(!rows.length) throw new Error("property not found");
+
+    const post = await fetch(`${SUPABASE_URL}/rest/v1/enquiries`, {
+      method:"POST",
+      headers:{ ...headers, "Content-Type":"application/json", Prefer:"return=minimal" },
+      body: JSON.stringify({
+        property_id: rows[0].id,
+        tenant_name: name, tenant_phone: phone, tenant_email: email || null, best_time: when
+      })
+    });
+    if(!post.ok) throw new Error("insert failed");
+    return { ok:true, configured:true };
+  }catch(e){
+    console.error("[Front Door] Sending the enquiry to the provider portal failed:", e);
+    return { ok:false, configured:true };
+  }
+}
 const wk = m => m * 12 / 52;
 const gbp  = n => "£" + Math.round(n).toLocaleString("en-GB");
 const gbp2 = n => "£" + n.toLocaleString("en-GB", {minimumFractionDigits:2, maximumFractionDigits:2});
@@ -1276,12 +1319,27 @@ function resetEnquiry(){
   $("eqSend").onclick = sendEnquiry;
 }
 
-function sendEnquiry(){
+async function sendEnquiry(){
   const name = $("eqName").value.trim();
   const phone = $("eqPhone").value.replace(/[^0-9+]/g, "");
+  const email = $("eqEmail").value.trim();
   if(name.length < 2){ toast("We just need your name first."); $("eqName").focus(); return; }
   if(phone.length < 9){ toast("That number looks too short — can you check it?"); $("eqPhone").focus(); return; }
+  if(email && !email.includes("@")){ toast("That email doesn't look quite right."); $("eqEmail").focus(); return; }
   const when = $("eqWhen").value.toLowerCase();
+
+  const sendBtn = $("eqSend");
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Sending…";
+  const result = await submitEnquiryToPortal(current, { name, phone, email, when });
+  sendBtn.disabled = false;
+  sendBtn.textContent = "Send my details";
+
+  if(!result.ok && result.configured){
+    toast("That didn't send — please try again, or just ring us on 020 7946 0000.");
+    return;
+  }
+
   enquireBox.innerHTML = `<div class="eq-done">
     <div class="tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></div>
     <h4>Thanks ${esc(name)}, that's with us</h4>
