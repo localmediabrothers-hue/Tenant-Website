@@ -738,31 +738,29 @@ async function submitEnquiryToPortal(h, { name, phone, email, when }){
     console.warn("[Front Door] Supabase isn't configured yet (see SUPABASE_URL near the top of this file) — this enquiry was not sent anywhere.");
     return { ok:false, configured:false };
   }
-  const headers = { apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}` };
+  // Demo listings aren't in the database at all, so an enquiry against one has
+  // nowhere to go — say so rather than pretending it sent.
+  if(!h._live){
+    console.warn("[Front Door] That's a placeholder listing, not a real one — enquiry not sent.");
+    return { ok:false, configured:true };
+  }
   try{
-    // A live listing's id is already the provider portal's real property id.
-    // Demo listings (shown only when no live listings have loaded) aren't in
-    // the database at all, so look them up by their placeholder slug — which
-    // will simply find nothing, and the enquiry is reported as undeliverable
-    // below rather than silently pretending to succeed.
-    let propertyId = h.id;
-    if(!h._live){
-      const lookup = await fetch(`${SUPABASE_URL}/rest/v1/properties?slug=eq.${h.id}&select=id`, { headers });
-      if(!lookup.ok) throw new Error("lookup failed");
-      const rows = await lookup.json();
-      if(!rows.length) throw new Error("property not found");
-      propertyId = rows[0].id;
-    }
-
-    const post = await fetch(`${SUPABASE_URL}/rest/v1/enquiries`, {
+    // Goes through the submit-enquiry function rather than writing to the
+    // database directly, because saving the enquiry also has to email the
+    // provider and the tenant — and the email key can't live in this file.
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-enquiry`, {
       method:"POST",
-      headers:{ ...headers, "Content-Type":"application/json", Prefer:"return=minimal" },
+      headers:{
+        apikey:SUPABASE_ANON_KEY,
+        Authorization:`Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type":"application/json"
+      },
       body: JSON.stringify({
-        property_id: propertyId,
+        property_id: h.id,
         tenant_name: name, tenant_phone: phone, tenant_email: email || null, best_time: when
       })
     });
-    if(!post.ok) throw new Error("insert failed");
+    if(!res.ok) throw new Error(`submit-enquiry returned ${res.status}: ${await res.text()}`);
     return { ok:true, configured:true };
   }catch(e){
     console.error("[Front Door] Sending the enquiry to the provider portal failed:", e);
