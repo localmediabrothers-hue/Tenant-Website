@@ -1170,7 +1170,7 @@ function toast(msg){
 function matching(){
   const q = whereEl.value.trim().toLowerCase();
   return HOMES.filter(h => {
-    if(activeType === "saved"){ if(!saved.includes(h.id)) return false; }
+    if(activeType === "saved"){ if(!saved.includes(String(h.id))) return false; }
     else if(activeType === "access"){ if(!h.tags.some(t => t[0] === "access")) return false; }
     else if(activeType !== "all" && h.type !== activeType) return false;
     if(q && !(h.addr.toLowerCase().includes(q) || h.title.toLowerCase().includes(q))) return false;
@@ -1204,8 +1204,8 @@ function render(){
   results.innerHTML = list.map((h, i) => `
     <article class="card" data-idx="${i}">
       <button class="hit" type="button" data-id="${h.id}" aria-label="See ${h.title}, ${h.addr}"></button>
-      <button class="heart" type="button" data-save="${h.id}" aria-pressed="${saved.includes(h.id)}"
-              aria-label="${saved.includes(h.id) ? "Remove from saved" : "Save this place"}">
+      <button class="heart" type="button" data-save="${h.id}" aria-pressed="${saved.includes(String(h.id))}"
+              aria-label="${saved.includes(String(h.id)) ? "Remove from saved" : "Save this place"}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.3-4.6-7.3-9.7A4.1 4.1 0 0 1 12 7.4a4.1 4.1 0 0 1 7.3 3.4c0 5.1-7.3 9.7-7.3 9.7z"/></svg>
       </button>
       <div class="pic">${pic(h)}</div>
@@ -1221,10 +1221,10 @@ function render(){
     </article>`).join("");
 
   results.querySelectorAll(".hit").forEach(b => {
-    b.onclick = () => openDetail(HOMES.find(h => h.id === Number(b.dataset.id)));
+    b.onclick = () => openDetail(HOMES.find(h => String(h.id) === b.dataset.id));
   });
   results.querySelectorAll(".heart").forEach(b => {
-    b.onclick = e => { e.stopPropagation(); toggleSave(Number(b.dataset.save)); };
+    b.onclick = e => { e.stopPropagation(); toggleSave(b.dataset.save); };
   });
 
   /* cards tilt very slightly towards the pointer */
@@ -1279,6 +1279,7 @@ function countUpIn(scope){
 
 /* ---------------- saving ---------------- */
 function toggleSave(id){
+  id = String(id); // ids can be plain numbers (demo listings) or long real ids — compare as text throughout
   const on = saved.includes(id);
   saved = on ? saved.filter(s => s !== id) : saved.concat(id);
   store.set("fd_saved", saved);
@@ -1286,7 +1287,7 @@ function toggleSave(id){
   btn.classList.remove("bump"); void btn.offsetWidth; btn.classList.add("bump");
   $("savedN").textContent = saved.length;
   toast(on ? "Removed from your saved places" : "Saved. It'll be here when you come back.");
-  if(dlg.open && current && current.id === id) $("dSave").textContent = on ? "Save it" : "Saved";
+  if(dlg.open && current && String(current.id) === id) $("dSave").textContent = on ? "Save it" : "Saved";
   render();
 }
 
@@ -1354,7 +1355,7 @@ function openDetail(h){
   $("dBlurb").textContent = h.blurb;
   $("cSub").textContent = "The only payment that comes from you — your rent is arranged separately.";
   $("dFacts").innerHTML = h.facts.map(f => `<div><span>${f[0]}</span><span>${f[1]}</span></div>`).join("");
-  $("dSave").textContent = saved.includes(h.id) ? "Saved" : "Save it";
+  $("dSave").textContent = saved.includes(String(h.id)) ? "Saved" : "Save it";
   benefitEl.value = benefit ? Math.round(benefit) : "";
   benefitUnit.value = "w";
   resetEnquiry();
