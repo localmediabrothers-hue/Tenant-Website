@@ -353,6 +353,14 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 @keyframes pop{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
 .d-pic{height:clamp(150px,30vh,240px);flex:none;background:var(--sky);position:relative}
 .d-pic svg,.d-pic img{width:100%;height:100%;display:block;object-fit:cover}
+.pic-nav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;
+  background:rgba(0,0,0,.45);border:none;display:grid;place-items:center;cursor:pointer;color:#fff;padding:0}
+.pic-nav svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.pic-nav:hover{background:rgba(0,0,0,.65)}
+.pic-prev{left:10px}
+.pic-next{right:10px}
+.pic-count{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.5);color:#fff;font-size:12px;
+  font-weight:600;padding:3px 9px;border-radius:999px}
 .d-pic .w{fill:var(--glow)}
 .d-x{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow-2);cursor:pointer;font-size:20px;line-height:1;display:grid;place-items:center;transition:transform .15s ease}
 .d-x:hover{transform:rotate(90deg)}
@@ -1293,7 +1301,26 @@ function toggleSave(id){
 
 /* ---------------- detail + calculator ---------------- */
 const dlg = $("detail");
-let current = null, animFrom = 0, lastTotal = 0;
+let current = null, animFrom = 0, lastTotal = 0, picIndex = 0;
+
+/* the main photo in the detail popup, with prev/next when there's more than one */
+function renderPic(){
+  const photos = current.photos || [];
+  if(photos.length <= 1){ $("dPic").innerHTML = pic(current); return; }
+  if(picIndex < 0) picIndex = photos.length - 1;
+  if(picIndex >= photos.length) picIndex = 0;
+  $("dPic").innerHTML = `
+    <img src="${photos[picIndex]}" alt="" loading="lazy">
+    <button type="button" class="pic-nav pic-prev" aria-label="Previous photo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>
+    </button>
+    <button type="button" class="pic-nav pic-next" aria-label="Next photo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+    <span class="pic-count">${picIndex + 1} / ${photos.length}</span>`;
+  $("dPic").querySelector(".pic-prev").onclick = () => { picIndex--; renderPic(); };
+  $("dPic").querySelector(".pic-next").onclick = () => { picIndex++; renderPic(); };
+}
 
 function countTo(el, to){
   if(REDUCED){ el.textContent = gbp2(to); animFrom = to; return; }
@@ -1348,8 +1375,8 @@ function setNote(){
 }
 
 function openDetail(h){
-  current = h; animFrom = 0;
-  $("dPic").innerHTML = pic(h);
+  current = h; animFrom = 0; picIndex = 0;
+  renderPic();
   $("dTitle").textContent = h.title;
   $("dAddr").textContent  = h.addr + " · " + h.avail;
   $("dBlurb").textContent = h.blurb;
