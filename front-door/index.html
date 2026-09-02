@@ -275,8 +275,8 @@ html{scroll-behavior:smooth}
 .card .hit{all:unset;position:absolute;inset:0;z-index:1;cursor:pointer}
 .card .hit:focus-visible{outline:3px solid var(--accent);outline-offset:-4px;border-radius:14px}
 .pic{position:relative;aspect-ratio:16/10;background:var(--sky);overflow:hidden}
-.pic svg{width:100%;height:100%;display:block;transition:transform .5s cubic-bezier(.2,.8,.3,1)}
-.card:hover .pic svg,.card:focus-within .pic svg{transform:scale(1.045)}
+.pic svg,.pic img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .5s cubic-bezier(.2,.8,.3,1)}
+.card:hover .pic svg,.card:focus-within .pic svg,.card:hover .pic img,.card:focus-within .pic img{transform:scale(1.045)}
 .pic .w{fill:var(--glass);transition:fill .45s ease}
 .card:hover .pic .w,.card:focus-within .pic .w{fill:var(--glow)}
 .pic .spill{opacity:0;transition:opacity .45s ease}
@@ -352,7 +352,7 @@ dialog::backdrop{background:rgba(10,15,11,.6);opacity:0;animation:fade .3s ease 
 dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 @keyframes pop{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
 .d-pic{height:clamp(150px,30vh,240px);flex:none;background:var(--sky);position:relative}
-.d-pic svg{width:100%;height:100%;display:block}
+.d-pic svg,.d-pic img{width:100%;height:100%;display:block;object-fit:cover}
 .d-pic .w{fill:var(--glow)}
 .d-x{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow-2);cursor:pointer;font-size:20px;line-height:1;display:grid;place-items:center;transition:transform .15s ease}
 .d-x:hover{transform:rotate(90deg)}
@@ -660,7 +660,9 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
    for a 6 bed. Rent is arranged separately, paid straight from the tenant's Housing Benefit or
    Universal Credit housing element to the landlord once the eligibility check clears it. There
    is no deposit on any property. */
-const HOMES = [
+/* shown only until real listings load from the provider portal (or if that
+   fetch fails) — see loadLiveProperties() below */
+const DEMO_HOMES = [
   { id:1, type:"flat", size:2, art:"terrace", title:"2 bedroom flat", addr:"Bellenden Road, Peckham SE15",
     month:1450, service:10, avail:"Available now",
     tags:[["hb","Housing Benefit welcome"],["bills","Bills in the service charge"],["","Garden"]],
@@ -708,6 +710,8 @@ const HOMES = [
     blurb:"Ground floor of a converted house with its own front door and a patio. Wet room fitted last year." }
 ];
 
+let HOMES = DEMO_HOMES;
+
 /* ---------------- helpers ---------------- */
 const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -728,16 +732,25 @@ async function submitEnquiryToPortal(h, { name, phone, email, when }){
   }
   const headers = { apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}` };
   try{
-    const lookup = await fetch(`${SUPABASE_URL}/rest/v1/properties?slug=eq.${h.id}&select=id`, { headers });
-    if(!lookup.ok) throw new Error("lookup failed");
-    const rows = await lookup.json();
-    if(!rows.length) throw new Error("property not found");
+    // A live listing's id is already the provider portal's real property id.
+    // Demo listings (shown only when no live listings have loaded) aren't in
+    // the database at all, so look them up by their placeholder slug — which
+    // will simply find nothing, and the enquiry is reported as undeliverable
+    // below rather than silently pretending to succeed.
+    let propertyId = h.id;
+    if(!h._live){
+      const lookup = await fetch(`${SUPABASE_URL}/rest/v1/properties?slug=eq.${h.id}&select=id`, { headers });
+      if(!lookup.ok) throw new Error("lookup failed");
+      const rows = await lookup.json();
+      if(!rows.length) throw new Error("property not found");
+      propertyId = rows[0].id;
+    }
 
     const post = await fetch(`${SUPABASE_URL}/rest/v1/enquiries`, {
       method:"POST",
       headers:{ ...headers, "Content-Type":"application/json", Prefer:"return=minimal" },
       body: JSON.stringify({
-        property_id: rows[0].id,
+        property_id: propertyId,
         tenant_name: name, tenant_phone: phone, tenant_email: email || null, best_time: when
       })
     });
@@ -746,6 +759,41 @@ async function submitEnquiryToPortal(h, { name, phone, email, when }){
   }catch(e){
     console.error("[Front Door] Sending the enquiry to the provider portal failed:", e);
     return { ok:false, configured:true };
+  }
+}
+
+/* ---------------- live listings ----------------
+   Replaces the placeholder DEMO_HOMES above with whatever's actually been
+   added in the provider portal, once it's loaded. If nothing's live yet (or
+   the request fails) the demo listings stay up rather than showing a blank
+   page. */
+async function loadLiveProperties(){
+  if(!SUPABASE_CONFIGURED) return;
+  try{
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/properties?active=eq.true&select=id,type,title,address,weekly_service_charge,monthly_rent,blurb,photo_urls&order=created_at.desc`,
+      { headers:{ apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    if(!res.ok) throw new Error(`fetch failed: ${res.status}`);
+    const rows = await res.json();
+    if(!rows.length) return; // nothing live yet — keep showing the placeholder listings
+    HOMES = rows.map(p => ({
+      id: p.id,
+      _live: true,
+      type: p.type || "flat",
+      title: p.title,
+      addr: p.address,
+      month: p.monthly_rent || null,
+      service: p.weekly_service_charge,
+      avail: "Available now",
+      tags: [["hb","Housing Benefit welcome"],["bills","Bills in the service charge"]],
+      facts: [["Deposit","None"],["Council tax","Included"],["Available","Now"]],
+      blurb: p.blurb || "",
+      photos: Array.isArray(p.photo_urls) ? p.photo_urls : []
+    }));
+    render();
+  }catch(e){
+    console.error("[Front Door] Couldn't load live listings, showing the placeholder ones instead:", e);
   }
 }
 const wk = m => m * 12 / 52;
@@ -759,6 +807,12 @@ const store = {
 
 /* the only amount the tenant pays each week — rent goes straight from their benefit to the landlord */
 const weeklyAllIn = h => h.service;
+
+/* a real photo if the listing has one, otherwise the illustrated placeholder */
+function pic(h){
+  if(h.photos && h.photos.length) return `<img src="${h.photos[0]}" alt="" loading="lazy">`;
+  return art(h.art || "terrace");
+}
 
 /* ---------------- illustrations ---------------- */
 function art(kind){
@@ -1154,9 +1208,11 @@ function render(){
               aria-label="${saved.includes(h.id) ? "Remove from saved" : "Save this place"}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.3-4.6-7.3-9.7A4.1 4.1 0 0 1 12 7.4a4.1 4.1 0 0 1 7.3 3.4c0 5.1-7.3 9.7-7.3 9.7z"/></svg>
       </button>
-      <div class="pic">${art(h.art)}</div>
+      <div class="pic">${pic(h)}</div>
       <div class="card-body">
-        <div class="price"><span class="m" data-count="${h.month}">£0</span><span class="w2">a month rent &middot; covered by your benefit</span></div>
+        <div class="price">${h.month
+          ? `<span class="m" data-count="${h.month}">£0</span><span class="w2">a month rent &middot; covered by your benefit</span>`
+          : `<span class="w2">Rent covered by your Housing Benefit</span>`}</div>
         <div class="addr">${h.title}</div>
         <div class="meta">${h.addr}<br>${h.avail}</div>
         <div class="allin"><b data-count="${weeklyAllIn(h)}" data-suffix=" a week">£0</b><span>only payment from you</span></div>
@@ -1262,9 +1318,9 @@ function drawCalc(){
   $("bCt").style.width   = "0%";
 
   const rows = [
-    ["var(--sun)", "Your service charge", gbp2(total), false],
-    ["var(--accent)", "Rent, paid straight from your benefit", gbp2(wk(h.month)), true]
+    ["var(--sun)", "Your service charge", gbp2(total), false]
   ];
+  if(h.month) rows.push(["var(--accent)", "Rent, paid straight from your benefit", gbp2(wk(h.month)), true]);
   $("cLegend").innerHTML = rows.map(r =>
     `<div class="lrow${r[3] ? " off" : ""}"><span class="sw" style="background:${r[0]}"></span>
      <span class="nm">${r[1]}</span><span class="amt">${r[2]}</span></div>`).join("");
@@ -1292,7 +1348,7 @@ function setNote(){
 
 function openDetail(h){
   current = h; animFrom = 0;
-  $("dPic").innerHTML = art(h.art);
+  $("dPic").innerHTML = pic(h);
   $("dTitle").textContent = h.title;
   $("dAddr").textContent  = h.addr + " · " + h.avail;
   $("dBlurb").textContent = h.blurb;
@@ -1415,6 +1471,7 @@ const HOOKS = [
 })();
 
 render();
+loadLiveProperties();
 </script>
 </body>
 </html>
