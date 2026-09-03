@@ -188,7 +188,8 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 @keyframes twinkle{0%,100%{opacity:.55}50%{opacity:1}}
 
 .flock{animation:flyAcross 38s linear infinite}
-@keyframes flyAcross{from{transform:translate(-260px,265px)}to{transform:translate(1420px,175px)}}
+@keyframes flyAcross{from{transform:translate(var(--flyX0,-260px),var(--flyY0,265px))}
+  to{transform:translate(var(--flyX1,1420px),var(--flyY1,175px))}}
 .bird{transform-box:fill-box;transform-origin:center;animation:flap .9s ease-in-out infinite}
 @keyframes flap{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.35)}}
 
@@ -200,11 +201,11 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .tree:nth-of-type(3n){animation-duration:4.3s}
 @keyframes sway{from{transform:rotate(-4.2deg)}to{transform:rotate(4.2deg)}}
 
-.bus{animation:drive 26s linear infinite}
-@keyframes drive{from{transform:translateX(-340px)}to{transform:translateX(1540px)}}
+.bus{animation:drive 5s linear infinite}
+@keyframes drive{from{transform:translateX(var(--driveX0,-340px))}to{transform:translateX(var(--driveX1,1540px))}}
 
 .walker{animation:stroll 52s linear infinite}
-@keyframes stroll{from{transform:translateX(1340px)}to{transform:translateX(-240px)}}
+@keyframes stroll{from{transform:translateX(var(--strollX0,1340px))}to{transform:translateX(var(--strollX1,-240px))}}
 .walker .bob{transform-box:fill-box;animation:bob .62s ease-in-out infinite alternate}
 @keyframes bob{from{transform:translateY(0)}to{transform:translateY(-2.5px)}}
 
@@ -978,7 +979,7 @@ function art(kind){
       <g class="cloud b" opacity=".38"><ellipse cx="${at(.25)}" cy="${Math.round(GROUND * 0.471)}" rx="58" ry="14" fill="var(--hero-far)"/><ellipse cx="${at(.25) - 44}" cy="${Math.round(GROUND * 0.460)}" rx="30" ry="15" fill="var(--hero-far)"/></g>
       <g class="cloud c" opacity=".3"><ellipse cx="${at(.52)}" cy="${Math.round(GROUND * 0.173)}" rx="52" ry="13" fill="var(--hero-far)"/><ellipse cx="${at(.52) - 40}" cy="${Math.round(GROUND * 0.165)}" rx="28" ry="14" fill="var(--hero-far)"/></g>
       <g class="cloud d" opacity=".24"><ellipse cx="${at(.75)}" cy="${Math.round(GROUND * 0.594)}" rx="64" ry="12" fill="var(--hero-far)"/><ellipse cx="${at(.75) - 44}" cy="${Math.round(GROUND * 0.586)}" rx="30" ry="13" fill="var(--hero-far)"/></g>
-      <g class="flock" opacity=".85">`;
+      <g class="flock" opacity=".85" style="--flyX0:${-Math.round(W * .3) - 280}px;--flyY0:${Math.round(GROUND * .30)}px;--flyX1:${W + 280}px;--flyY1:${Math.round(GROUND * .20)}px">`;
 
   [[0,0],[44,-26],[90,8],[132,-16],[178,20],[220,-6]].forEach((b, bi) => {
     s += `<path class="bird" d="M${b[0]} ${b[1]} q11 -11 22 0 q11 -11 22 0" fill="none" stroke="var(--hero-roof)" stroke-width="3.4" stroke-linecap="round" style="animation-delay:${(bi * .13).toFixed(2)}s"/>`;
@@ -1079,7 +1080,7 @@ function art(kind){
   </g>`;
 
   /* someone walking the dog home */
-  s += `<g class="walker"><g class="bob" transform="translate(0 ${TRAFFIC + 6}) scale(1.55)">
+  s += `<g class="walker" style="--strollX0:${W + 60}px;--strollX1:-60px"><g class="bob" transform="translate(0 ${TRAFFIC + 6}) scale(1.55)">
     <circle cx="0" cy="-34" r="6.4" fill="var(--hero-roof)"/>
     <rect x="-4.4" y="-28" width="9" height="18" rx="3" fill="var(--hero-roof)"/>
     <rect x="-4.4" y="-11" width="3.8" height="11" fill="var(--hero-roof)"/>
@@ -1096,7 +1097,9 @@ function art(kind){
   </g></g>`;
 
   /* the bus home */
-  s += `<g class="bus"><g transform="translate(0 ${TRAFFIC + 4})">
+    /* Starts far enough back that it is off screen for part of each cycle —
+     otherwise a 5s loop just means a bus permanently in shot. */
+  s += `<g class="bus" style="--driveX0:${-Math.round(W * .55) - 180}px;--driveX1:${W + 30}px"><g transform="translate(0 ${TRAFFIC + 4})">
     <rect x="0" y="-60" width="134" height="60" rx="9" fill="var(--bus)"/>
     <rect x="9" y="-52" width="31" height="18" rx="3" fill="var(--hero-sky1)" opacity=".85"/>
     <rect x="46" y="-52" width="31" height="18" rx="3" fill="var(--hero-sky1)" opacity=".85"/>
