@@ -145,7 +145,24 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 
 /* ================= hero ================= */
 .hero{position:relative;min-height:min(92vh,820px);display:flex;align-items:flex-end;overflow:hidden}
-@media(max-width:680px){.hero{min-height:70vh}.hero-content{padding:96px 20px 84px}}
+/* On a phone the copy and the search box used to sit over almost the whole
+   scene. More height, tighter type and a lighter scrim leave the street
+   visible behind them without costing legibility — the text carries its own
+   shadow either way. */
+@media(max-width:680px){
+  .hero{min-height:88vh}
+  .hero-content{padding:76px 20px 28px}
+  .hero-content h1{font-size:30px}
+  .hero-content p{font-size:16.5px;margin-top:12px}
+  .ticker{margin-bottom:14px}
+  .moneyline{font-size:16px;margin-top:14px}
+  .search{margin-top:18px;padding:16px}
+  /* the money line below says the same thing more concretely, so on a phone
+     this one is just four lines sitting on top of the scene */
+  .intro-long{display:none}
+  .hero-scrim{background:linear-gradient(to top,rgba(6,10,7,.5) 0%,rgba(6,10,7,.2) 42%,rgba(6,10,7,0) 74%)}
+  .hero-scrim-top{height:120px;background:linear-gradient(to bottom,rgba(6,10,7,.42) 0%,rgba(6,10,7,0) 100%)}
+}
 .hero-art{position:absolute;inset:0;z-index:0}
 .hero-art svg{width:100%;height:100%;display:block}
 .hero-art .w{fill:var(--hero-sky1);transition:fill .9s ease}
@@ -485,7 +502,7 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
     <div class="hero-content wrap">
       <p class="ticker" id="ticker">Bills included. No agency fees.</p>
       <h1 class="reveal">Somewhere to live, with <span class="em">the lights already on</span></h1>
-      <p class="reveal">Every landlord here accepts Housing Benefit and Universal Credit. No agency fees. And we show you the real weekly cost before you ask.</p>
+      <p class="reveal intro-long">Every landlord here accepts Housing Benefit and Universal Credit. No agency fees. And we show you the real weekly cost before you ask.</p>
       <p class="moneyline reveal">Once your eligibility check clears, your rent is arranged straight from your Housing Benefit — you only ever pay <b>£10&ndash;£30 a week</b>, and that covers your gas, electric, water and wifi too.</p>
 
       <form class="search" id="searchForm">
@@ -890,7 +907,31 @@ function art(kind){
   const host = document.getElementById("street");
   const heroEl = document.getElementById("hero");
   const topbar = document.getElementById("topbar");
-  const W = 1200, H = 640, GROUND = 556, PAVE = 598;
+  /* H is set below, once we know the shape we're drawing into. */
+
+  /* The canvas is drawn to the shape of the hero itself. It used to be a fixed
+     1200 wide, scaled to cover and cropped to fit — which on a phone showed
+     only the middle third, cutting off the moon, the cat, and the outer trees
+     and lamps entirely. Matching the hero's own aspect ratio means the whole
+     scene is visible whatever the screen. */
+  const heroBox = heroEl.getBoundingClientRect();
+  const ratio = heroBox.width > 0 && heroBox.height > 0 ? heroBox.width / heroBox.height : 1200 / 640;
+  const W = Math.round(Math.min(1400, Math.max(300, 640 * ratio)));
+  const H = Math.round(Math.min(900, Math.max(520, W / ratio)));
+
+  /* On a tall, narrow canvas the street would otherwise sit in the last tenth
+     of the height — behind the search box. Lifting the ground line puts the
+     trees, lamps and the cat above it, where they can actually be seen. */
+  const narrow = W < 620;
+  const GROUND = Math.round(H * (narrow ? .56 : .87));
+  const PAVE = Math.round(H * (narrow ? .63 : .934));
+  const TRAFFIC = narrow ? Math.round(H * .96) : PAVE;
+
+  /* Landmarks sit at fractions of the width so they stay sensibly placed
+     whether the canvas ends up phone-narrow or desktop-wide. */
+  const at = f => Math.round(W * f);
+  const MOONX = narrow ? at(.66) : at(.8);
+  const MOONY = narrow ? Math.round(H * .10) : 132;
   const wins = [];
   let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMax slice" role="presentation">
     <defs>
@@ -916,27 +957,27 @@ function art(kind){
     <rect width="${W}" height="${H}" fill="url(#sky)"/>
     <rect id="duskLayer" width="${W}" height="${H}" fill="url(#duskGrad)" opacity="0"/>
     <g id="skyLayer">
-      <circle id="sun" cx="980" cy="132" r="42" fill="var(--glow)" opacity=".55"/>
+      <circle id="sun" cx="${MOONX}" cy="${MOONY}" r="42" fill="var(--glow)" opacity=".55"/>
       <g id="moon" opacity="0">
-        <circle class="moonGlow" cx="980" cy="132" r="78" fill="url(#moonG)"/>
-        <circle cx="980" cy="132" r="38" fill="var(--moon)"/>
-        <circle cx="966" cy="120" r="7.5" fill="var(--crater)" opacity=".55"/>
-        <circle cx="995" cy="143" r="5.5" fill="var(--crater)" opacity=".5"/>
-        <circle cx="972" cy="149" r="4" fill="var(--crater)" opacity=".45"/>
-        <circle cx="991" cy="118" r="3" fill="var(--crater)" opacity=".4"/>
+        <circle class="moonGlow" cx="${MOONX}" cy="${MOONY}" r="78" fill="url(#moonG)"/>
+        <circle cx="${MOONX}" cy="${MOONY}" r="38" fill="var(--moon)"/>
+        <circle cx="${MOONX - 14}" cy="${MOONY - 12}" r="7.5" fill="var(--crater)" opacity=".55"/>
+        <circle cx="${MOONX + 15}" cy="${MOONY + 11}" r="5.5" fill="var(--crater)" opacity=".5"/>
+        <circle cx="${MOONX - 8}" cy="${MOONY + 17}" r="4" fill="var(--crater)" opacity=".45"/>
+        <circle cx="${MOONX + 11}" cy="${MOONY - 14}" r="3" fill="var(--crater)" opacity=".4"/>
       </g>
       <g id="stars" opacity="0">`;
 
   for(let k = 0; k < 40; k++){
-    const sx = (k * 61 + 30) % W, sy = 26 + (k * 43) % 380, r = 1.5 + (k % 3) * .7;
+    const sx = (k * 61 + 30) % W, sy = 26 + (k * 43) % Math.round(GROUND * .72), r = 1.5 + (k % 3) * .7;
     s += `<circle cx="${sx}" cy="${sy}" r="${(r * 3.4).toFixed(1)}" fill="url(#starG)" opacity=".5"/>`;
     s += `<circle class="s" cx="${sx}" cy="${sy}" r="${r}" style="animation-delay:${((k % 9) * .5).toFixed(1)}s"/>`;
   }
   s += `</g>
-      <g class="cloud" opacity=".5"><ellipse cx="80" cy="150" rx="46" ry="15" fill="var(--hero-far)"/><ellipse cx="118" cy="144" rx="30" ry="17" fill="var(--hero-far)"/></g>
-      <g class="cloud b" opacity=".38"><ellipse cx="300" cy="262" rx="58" ry="14" fill="var(--hero-far)"/><ellipse cx="256" cy="256" rx="30" ry="15" fill="var(--hero-far)"/></g>
-      <g class="cloud c" opacity=".3"><ellipse cx="620" cy="96" rx="52" ry="13" fill="var(--hero-far)"/><ellipse cx="580" cy="92" rx="28" ry="14" fill="var(--hero-far)"/></g>
-      <g class="cloud d" opacity=".24"><ellipse cx="900" cy="330" rx="64" ry="12" fill="var(--hero-far)"/><ellipse cx="856" cy="326" rx="30" ry="13" fill="var(--hero-far)"/></g>
+      <g class="cloud" opacity=".5"><ellipse cx="${at(.07)}" cy="${Math.round(GROUND * 0.270)}" rx="46" ry="15" fill="var(--hero-far)"/><ellipse cx="${at(.07) + 38}" cy="${Math.round(GROUND * 0.259)}" rx="30" ry="17" fill="var(--hero-far)"/></g>
+      <g class="cloud b" opacity=".38"><ellipse cx="${at(.25)}" cy="${Math.round(GROUND * 0.471)}" rx="58" ry="14" fill="var(--hero-far)"/><ellipse cx="${at(.25) - 44}" cy="${Math.round(GROUND * 0.460)}" rx="30" ry="15" fill="var(--hero-far)"/></g>
+      <g class="cloud c" opacity=".3"><ellipse cx="${at(.52)}" cy="${Math.round(GROUND * 0.173)}" rx="52" ry="13" fill="var(--hero-far)"/><ellipse cx="${at(.52) - 40}" cy="${Math.round(GROUND * 0.165)}" rx="28" ry="14" fill="var(--hero-far)"/></g>
+      <g class="cloud d" opacity=".24"><ellipse cx="${at(.75)}" cy="${Math.round(GROUND * 0.594)}" rx="64" ry="12" fill="var(--hero-far)"/><ellipse cx="${at(.75) - 44}" cy="${Math.round(GROUND * 0.586)}" rx="30" ry="13" fill="var(--hero-far)"/></g>
       <g class="flock" opacity=".85">`;
 
   [[0,0],[44,-26],[90,8],[132,-16],[178,20],[220,-6]].forEach((b, bi) => {
@@ -989,9 +1030,10 @@ function art(kind){
   s += `</g><g id="layerStreet">
     <rect x="0" y="${GROUND}" width="${W}" height="${H - GROUND}" fill="var(--hero-roof)" opacity=".2"/>
     <rect x="0" y="${PAVE}" width="${W}" height="${H - PAVE}" fill="var(--hero-roof)" opacity=".32"/>`;
+  if(narrow) s += `<rect x="0" y="${TRAFFIC - 4}" width="${W}" height="${H - TRAFFIC + 4}" fill="var(--hero-roof)" opacity=".22"/>`;
 
   /* trees that sway */
-  [140, 470, 815, 1120].forEach((tx, ti) => {
+  [.10, .33, .55, .88].map(at).forEach((tx, ti) => {
     s += `<g class="tree" style="animation-delay:${(ti * .9).toFixed(1)}s">
       <rect x="${tx - 3}" y="${GROUND - 34}" width="6" height="36" fill="var(--hero-roof)"/>
       <circle cx="${tx}" cy="${GROUND - 50}" r="24" fill="var(--hero-roof)" opacity=".85"/>
@@ -1001,7 +1043,7 @@ function art(kind){
   });
 
   /* street lamps that come on as it gets dark */
-  [300, 665, 1010].forEach(lx => {
+  [.22, .47, .78].map(at).forEach(lx => {
     s += `<g class="lamp">
       <circle class="lampGlow" cx="${lx}" cy="${GROUND - 64}" r="48" fill="url(#lampG)" opacity="0"/>
       <rect x="${lx - 2}" y="${GROUND - 62}" width="4" height="64" fill="var(--hero-roof)"/>
@@ -1010,8 +1052,9 @@ function art(kind){
   });
 
   /* a ginger cat sitting on a garden wall, eyes catching the light after dark */
-  s += `<rect x="880" y="${GROUND + 16}" width="150" height="26" rx="3" fill="var(--hero-roof)" opacity=".55"/>`;
-  s += `<g transform="translate(950 ${GROUND + 16}) scale(2.15)">
+  const wallW = Math.round(Math.min(150, W * .3)), wallX = at(.66);
+  s += `<rect x="${wallX}" y="${GROUND + 16}" width="${wallW}" height="26" rx="3" fill="var(--hero-roof)" opacity=".55"/>`;
+  s += `<g transform="translate(${wallX + Math.round(wallW * .46)} ${GROUND + 16}) scale(2.15)">
     <path class="tail" d="M-9 -3 q-15 -1 -12 -16" fill="none" stroke="var(--cat)" stroke-width="3.6" stroke-linecap="round"/>
     <ellipse cx="-3" cy="-6" rx="10" ry="8.5" fill="var(--cat)"/>
     <path d="M3 -2 q1 -12 6 -14 q6 -1 6 6 l0 10 z" fill="var(--cat)"/>
@@ -1036,7 +1079,7 @@ function art(kind){
   </g>`;
 
   /* someone walking the dog home */
-  s += `<g class="walker"><g class="bob" transform="translate(0 ${PAVE + 6}) scale(1.55)">
+  s += `<g class="walker"><g class="bob" transform="translate(0 ${TRAFFIC + 6}) scale(1.55)">
     <circle cx="0" cy="-34" r="6.4" fill="var(--hero-roof)"/>
     <rect x="-4.4" y="-28" width="9" height="18" rx="3" fill="var(--hero-roof)"/>
     <rect x="-4.4" y="-11" width="3.8" height="11" fill="var(--hero-roof)"/>
@@ -1053,7 +1096,7 @@ function art(kind){
   </g></g>`;
 
   /* the bus home */
-  s += `<g class="bus"><g transform="translate(0 ${PAVE + 4})">
+  s += `<g class="bus"><g transform="translate(0 ${TRAFFIC + 4})">
     <rect x="0" y="-60" width="134" height="60" rx="9" fill="var(--bus)"/>
     <rect x="9" y="-52" width="31" height="18" rx="3" fill="var(--hero-sky1)" opacity=".85"/>
     <rect x="46" y="-52" width="31" height="18" rx="3" fill="var(--hero-sky1)" opacity=".85"/>
