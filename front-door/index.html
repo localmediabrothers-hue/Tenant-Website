@@ -47,12 +47,12 @@
   --hero-roof:#2A5F53;
   --dusk1:#0F1C15;
   --dusk2:#060B08;
-  --star:#F5F7EF;
+  --star:#F4F8FF;
   --bus:#A4453C;
   --tv:#6FA8CE;
   --lamp:#FFD79A;
-  --moon:#F6F4E6;
-  --crater:#D5D3C2;
+  --moon:#EEF2F8;
+  --crater:#B7C2D1;
   --cat:#C8763C;
   --cat-dark:#9E5626;
   --cat-light:#F4E4CE;
@@ -77,9 +77,9 @@
     --roof:#2C6A5C; --wall:#333B34; --door:#8A5730; --sky:#202822; --glass:#49564D; --glow:#F5C25C;
     --hero-sky1:#141B17; --hero-sky2:#0E1210;
     --hero-far:#1A231C; --hero-house:#232C24; --hero-roof:#1D4A41;
-    --dusk1:#070F0B; --dusk2:#030604; --star:#EDF2E9;
+    --dusk1:#070F0B; --dusk2:#030604; --star:#EFF4FF;
     --bus:#B85248; --tv:#5E93B8; --lamp:#FFDCA8;
-    --moon:#F8F6EA; --crater:#CFCDBC;
+    --moon:#F2F6FC; --crater:#AFBBCB;
     --cat:#BE6E36; --cat-dark:#8F4C20; --cat-light:#EBD9C0; --cat-inner:#D4938C; --cat-eye:#F5CC63;
   }
 }
@@ -98,9 +98,9 @@
   --roof:#2C6A5C; --wall:#333B34; --door:#8A5730; --sky:#202822; --glass:#49564D; --glow:#F5C25C;
   --hero-sky1:#141B17; --hero-sky2:#0E1210;
   --hero-far:#1A231C; --hero-house:#232C24; --hero-roof:#1D4A41;
-  --dusk1:#070F0B; --dusk2:#030604; --star:#EDF2E9;
+  --dusk1:#070F0B; --dusk2:#030604; --star:#EFF4FF;
   --bus:#B85248; --tv:#5E93B8; --lamp:#FFDCA8;
-  --moon:#F8F6EA; --crater:#CFCDBC;
+  --moon:#F2F6FC; --crater:#AFBBCB;
   --cat:#BE6E36; --cat-dark:#8F4C20; --cat-light:#EBD9C0; --cat-inner:#D4938C; --cat-eye:#F5CC63;
 }
 
@@ -977,19 +977,31 @@ function art(kind){
           <circle cx="${MOONX}" cy="${MOONY}" r="78" fill="url(#moonG)"/>
         </g>
         <circle cx="${MOONX}" cy="${MOONY}" r="38" fill="url(#moonSurface)"/>
-        <circle cx="${MOONX - 14}" cy="${MOONY - 12}" r="7.5" fill="var(--crater)" opacity=".55"/>
-        <circle cx="${MOONX + 15}" cy="${MOONY + 11}" r="5.5" fill="var(--crater)" opacity=".5"/>
-        <circle cx="${MOONX - 8}" cy="${MOONY + 17}" r="4" fill="var(--crater)" opacity=".45"/>
-        <circle cx="${MOONX + 11}" cy="${MOONY - 14}" r="3" fill="var(--crater)" opacity=".4"/>
-        <circle cx="${MOONX + 4}" cy="${MOONY + 4}" r="2.6" fill="var(--crater)" opacity=".35"/>
-        <circle cx="${MOONX - 20}" cy="${MOONY + 2}" r="3.4" fill="var(--crater)" opacity=".4"/>
+        <circle cx="${MOONX - 13}" cy="${MOONY - 13}" r="9" fill="var(--crater)" opacity=".5"/>
+        <circle cx="${MOONX - 21}" cy="${MOONY + 1}" r="5.5" fill="var(--crater)" opacity=".42"/>
+        <circle cx="${MOONX + 14}" cy="${MOONY + 12}" r="7" fill="var(--crater)" opacity=".45"/>
+        <circle cx="${MOONX - 6}" cy="${MOONY + 18}" r="5" fill="var(--crater)" opacity=".4"/>
+        <circle cx="${MOONX + 12}" cy="${MOONY - 15}" r="4" fill="var(--crater)" opacity=".38"/>
+        <circle cx="${MOONX + 2}" cy="${MOONY + 2}" r="3.2" fill="var(--crater)" opacity=".32"/>
+        <circle cx="${MOONX + 24}" cy="${MOONY - 3}" r="3" fill="var(--crater)" opacity=".3"/>
+        <circle cx="${MOONX - 3}" cy="${MOONY - 24}" r="3.6" fill="var(--crater)" opacity=".34"/>
+        <circle cx="${MOONX + 20}" cy="${MOONY + 22}" r="2.4" fill="var(--crater)" opacity=".28"/>
+        <circle cx="${MOONX - 24}" cy="${MOONY + 16}" r="2.6" fill="var(--crater)" opacity=".26"/>
       </g>
       <g id="stars" opacity="0">`;
 
-  for(let k = 0; k < 40; k++){
-    const sx = (k * 61 + 30) % W, sy = 26 + (k * 43) % 380, r = 1.8 + (k % 3) * .9;
-    s += `<circle cx="${sx}" cy="${sy}" r="${(r * 4.4).toFixed(1)}" fill="url(#starG)" opacity=".65"/>`;
-    s += `<circle class="s" cx="${sx}" cy="${sy}" r="${r}" style="animation-delay:${((k % 9) * .5).toFixed(1)}s"/>`;
+  const SCOLS = Math.max(6, Math.round(W / 86)), SROWS = 9;
+  const cellW = W / SCOLS, cellH = (GROUND - 12) / SROWS;
+  for(let gy = 0; gy < SROWS; gy++){
+    for(let gx = 0; gx < SCOLS; gx++){
+      const k = gy * SCOLS + gx;
+      const jx = ((k * 73) % 97) / 97, jy = ((k * 149) % 89) / 89;
+      const sx = Math.round((gx + .12 + jx * .76) * cellW);
+      const sy = Math.round(12 + (gy + .12 + jy * .76) * cellH);
+      const r = .85 + ((k * 31) % 7) * .21;
+      s += `<circle cx="${sx}" cy="${sy}" r="${(r * 3.4).toFixed(1)}" fill="url(#starG)" opacity=".55"/>`;
+      s += `<circle class="s" cx="${sx}" cy="${sy}" r="${r.toFixed(1)}" style="animation-delay:${((k % 9) * .5).toFixed(1)}s"/>`;
+    }
   }
   s += `</g>
       <g class="cloud" opacity=".5"><ellipse cx="${at(.07)}" cy="${Math.round(GROUND * 0.270)}" rx="46" ry="15" fill="var(--hero-far)"/><ellipse cx="${at(.07) + 38}" cy="${Math.round(GROUND * 0.259)}" rx="30" ry="17" fill="var(--hero-far)"/></g>
@@ -1157,9 +1169,9 @@ function art(kind){
   if(REDUCED){
     nodes.forEach(n => n.classList.add("lit"));
     duskLayer.style.opacity = (seed * .5).toFixed(2);
-    starsG.style.opacity = Math.min(1, seed * 1.3).toFixed(2);
-    sun.style.opacity = (.55 * (1 - seed)).toFixed(2);
-    moon.style.opacity = Math.min(1, Math.max(0, (seed - .2) * 1.8)).toFixed(2);
+    starsG.style.opacity = Math.min(1, seed * 1.75).toFixed(2);
+    sun.style.opacity = (.55 * Math.max(0, Math.min(1, 1 - seed / .34))).toFixed(2);
+    moon.style.opacity = Math.min(1, Math.max(0, (seed - .4) * 2.6)).toFixed(2);
     lampGlows.forEach(g => g.style.opacity = Math.min(1, seed * 1.4).toFixed(2));
     const onScroll = () => {
       topbar.classList.toggle("stuck", heroEl.getBoundingClientRect().bottom <= 84);
@@ -1190,9 +1202,9 @@ function art(kind){
     const dusk = Math.max(0, Math.min(.88, seed * .72 + scrollT * .35));
 
     duskLayer.style.opacity = dusk.toFixed(2);
-    starsG.style.opacity = Math.min(1, dusk * 1.45).toFixed(2);
-    sun.style.opacity = (.55 * Math.max(0, 1 - dusk / .88 * 1.25)).toFixed(2);
-    moon.style.opacity = Math.min(1, Math.max(0, (dusk - .2) * 2.1)).toFixed(2);
+    starsG.style.opacity = Math.min(1, dusk * 1.9).toFixed(2);
+    sun.style.opacity = (.55 * Math.max(0, Math.min(1, 1 - dusk / .34))).toFixed(2);
+    moon.style.opacity = Math.min(1, Math.max(0, (dusk - .4) * 2.6)).toFixed(2);
     lampGlows.forEach(g => g.style.opacity = Math.min(1, Math.max(0, (dusk - .18) * 2)).toFixed(2));
 
     /* four depths, each moving at its own rate */
