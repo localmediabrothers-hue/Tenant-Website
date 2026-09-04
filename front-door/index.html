@@ -152,6 +152,7 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 #duskLayer{transition:opacity .2s linear}
 #stars{transition:opacity .2s linear}
 #stars .s{fill:var(--star);animation:twinkle 4.4s ease-in-out infinite}
+#stars .sg{transform-box:fill-box;transform-origin:center;animation:starPulse 4.4s ease-in-out infinite}
 #sun,#moon{transition:opacity .3s linear}
 #sun{transform-box:fill-box;transform-origin:center;animation:sunPulse 8s ease-in-out infinite alternate}
 @keyframes sunPulse{from{transform:scale(1)}to{transform:scale(1.045)}}
@@ -168,6 +169,7 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .cloud.d{animation-duration:124s;animation-delay:-15s}
 @keyframes drift{from{transform:translateX(-280px)}to{transform:translateX(1500px)}}
 @keyframes twinkle{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes starPulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:.82;transform:scale(1.2)}}
 
 .flock{animation:flyAcross 38s linear infinite}
 @keyframes flyAcross{from{transform:translate(var(--flyX0,-260px),var(--flyY0,265px))}
@@ -999,8 +1001,9 @@ function art(kind){
       const sx = Math.round((gx + .12 + jx * .76) * cellW);
       const sy = Math.round(12 + (gy + .12 + jy * .76) * cellH);
       const r = .85 + ((k * 31) % 7) * .21;
-      s += `<circle cx="${sx}" cy="${sy}" r="${(r * 3.4).toFixed(1)}" fill="url(#starG)" opacity=".55"/>`;
-      s += `<circle class="s" cx="${sx}" cy="${sy}" r="${r.toFixed(1)}" style="animation-delay:${((k % 9) * .5).toFixed(1)}s"/>`;
+      const beat = `animation-duration:${(3.4 + ((k * 17) % 11) * .34).toFixed(2)}s;animation-delay:-${(((k * 29) % 23) * .27).toFixed(2)}s`;
+      s += `<circle class="sg" cx="${sx}" cy="${sy}" r="${(r * 3.4).toFixed(1)}" fill="url(#starG)" opacity=".5" style="${beat}"/>`;
+      s += `<circle class="s" cx="${sx}" cy="${sy}" r="${r.toFixed(1)}" style="${beat}"/>`;
     }
   }
   s += `</g>
