@@ -201,7 +201,7 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .tree:nth-of-type(3n){animation-duration:4.3s}
 @keyframes sway{from{transform:rotate(-4.2deg)}to{transform:rotate(4.2deg)}}
 
-.bus{animation:drive 5s linear infinite}
+.bus{animation:drive 9s linear infinite}
 @keyframes drive{from{transform:translateX(var(--driveX0,-340px))}to{transform:translateX(var(--driveX1,1540px))}}
 
 .walker{animation:stroll 52s linear infinite}
@@ -970,7 +970,7 @@ function art(kind){
       <g id="stars" opacity="0">`;
 
   for(let k = 0; k < 40; k++){
-    const sx = (k * 61 + 30) % W, sy = 26 + (k * 43) % Math.round(GROUND * .72), r = 1.5 + (k % 3) * .7;
+    const sx = (k * 61 + 30) % W, sy = 26 + (k * 43) % 380, r = 1.5 + (k % 3) * .7;
     s += `<circle cx="${sx}" cy="${sy}" r="${(r * 3.4).toFixed(1)}" fill="url(#starG)" opacity=".5"/>`;
     s += `<circle class="s" cx="${sx}" cy="${sy}" r="${r}" style="animation-delay:${((k % 9) * .5).toFixed(1)}s"/>`;
   }
@@ -1099,7 +1099,7 @@ function art(kind){
   /* the bus home */
     /* Starts far enough back that it is off screen for part of each cycle —
      otherwise a 5s loop just means a bus permanently in shot. */
-  s += `<g class="bus" style="--driveX0:${-Math.round(W * .55) - 180}px;--driveX1:${W + 30}px"><g transform="translate(0 ${TRAFFIC + 4})">
+  s += `<g class="bus" style="--driveX0:${-(W + 250)}px;--driveX1:${W + 30}px"><g transform="translate(0 ${TRAFFIC + 4})">
     <rect x="0" y="-60" width="134" height="60" rx="9" fill="var(--bus)"/>
     <rect x="9" y="-52" width="31" height="18" rx="3" fill="var(--hero-sky1)" opacity=".85"/>
     <rect x="46" y="-52" width="31" height="18" rx="3" fill="var(--hero-sky1)" opacity=".85"/>
