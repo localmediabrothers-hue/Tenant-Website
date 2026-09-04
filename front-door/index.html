@@ -151,15 +151,15 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .hero-art .w.lit{fill:var(--glow)}
 #duskLayer{transition:opacity .2s linear}
 #stars{transition:opacity .2s linear}
-#stars .s{fill:var(--star);animation:tw0 4s ease-in-out infinite}
+#stars .s{fill:var(--star);animation:tw0 7s ease-in-out infinite}
 #stars .s.t1{animation-name:tw1}
 #stars .s.t2{animation-name:tw2}
 #stars .s.t3{animation-name:tw3}
-#stars .sg{transform-box:fill-box;transform-origin:center;animation:gl0 4s ease-in-out infinite}
+#stars .sg{transform-box:fill-box;transform-origin:center;animation:gl0 7s ease-in-out infinite}
 #stars .sg.t1{animation-name:gl1}
 #stars .sg.t2{animation-name:gl2}
 #stars .sg.t3{animation-name:gl3}
-#stars .sx{fill:var(--star);transform-box:fill-box;transform-origin:center;animation:glint 4s ease-in-out infinite}
+#stars .sx{fill:var(--star);transform-box:fill-box;transform-origin:center;animation:glint 7s ease-in-out infinite}
 #sun,#moon{transition:opacity .3s linear}
 #sun{transform-box:fill-box;transform-origin:center;animation:sunPulse 8s ease-in-out infinite alternate}
 @keyframes sunPulse{from{transform:scale(1)}to{transform:scale(1.045)}}
@@ -1045,7 +1045,7 @@ function art(kind){
     const sx = Math.round(px), sy = Math.round(py);
     const r = .8 + rnd() * 1.5;
     const t = k % 4 ? ` t${k % 4}` : "";
-    const beat = `animation-duration:${(3.2 + rnd() * 3.4).toFixed(2)}s;animation-delay:-${(rnd() * 7).toFixed(2)}s`;
+    const beat = `animation-duration:${(6 + rnd() * 6).toFixed(2)}s;animation-delay:-${(rnd() * 12).toFixed(2)}s`;
     s += `<circle class="sg${t}" cx="${sx}" cy="${sy}" r="${(r * 3.6).toFixed(1)}" fill="url(#starG)" opacity=".5" style="${beat}"/>`;
     s += `<circle class="s${t}" cx="${sx}" cy="${sy}" r="${r.toFixed(1)}" style="${beat}"/>`;
     /* Only the handful of biggest stars get a cross, and a short thin one —
@@ -1420,7 +1420,7 @@ function toggleSave(id){
 
 /* ---------------- detail + calculator ---------------- */
 const dlg = $("detail");
-let current = null, animFrom = 0, lastTotal = 0, picIndex = 0;
+let current = null, animFrom = 0, lastTotal = 0, picIndex = 0, moneyRAF = null;
 
 /* the main photo in the detail popup, with prev/next when there's more than one */
 function renderPic(){
@@ -1442,12 +1442,13 @@ function renderPic(){
 }
 
 function countTo(el, to){
+  if(moneyRAF !== null){ cancelAnimationFrame(moneyRAF); moneyRAF = null; }
   if(REDUCED){ el.textContent = gbp2(to); animFrom = to; return; }
   const from = animFrom, t0 = performance.now(), dur = 420;
   (function step(t){
     const p = Math.min((t - t0) / dur, 1), e = 1 - Math.pow(1 - p, 3);
     el.textContent = gbp2(from + (to - from) * e);
-    if(p < 1) requestAnimationFrame(step);
+    moneyRAF = p < 1 ? requestAnimationFrame(step) : null;
   })(t0);
   animFrom = to;
 }
@@ -1494,6 +1495,11 @@ function setNote(){
 }
 
 function openDetail(h){
+  /* Tapping a property twice fast (easy on a slower connection) called this
+     twice before the first showModal() finished, and showModal() throws if
+     the dialog is already open — closing first makes a repeat tap just
+     redraw the same popup instead of crashing mid-open. */
+  if(dlg.open) dlg.close();
   current = h; animFrom = 0; picIndex = 0;
   renderPic();
   $("dTitle").textContent = h.title;
