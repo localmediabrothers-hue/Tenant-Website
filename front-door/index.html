@@ -1155,16 +1155,10 @@ function art(kind){
     if(bar) bar.style.width = (max > 0 ? Math.min(100, scrollY / max * 100) : 0) + "%";
   };
 
-  /* seed the sky's mood from the visitor's own clock, day or night */
-  function duskFromHour(hr){
-    if(hr < 6 || hr >= 22) return .8;
-    if(hr < 8)  return (8 - hr) / 2 * .5;
-    if(hr < 17) return 0;
-    if(hr < 20) return (hr - 17) / 3;
-    return .8 + (hr - 20) / 2 * .18;
-  }
-  const hourNow = new Date().getHours() + new Date().getMinutes() / 60;
-  const seed = Math.max(0, Math.min(1, duskFromHour(hourNow)));
+  /* Always night — moon up, stars out, windows and lamps lit — rather than
+     following the visitor's own clock. It still deepens slightly as you
+     scroll, so the scene has somewhere to go. */
+  const seed = 1;
 
   if(REDUCED){
     nodes.forEach(n => n.classList.add("lit"));
