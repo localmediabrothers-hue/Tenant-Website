@@ -151,8 +151,15 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .hero-art .w.lit{fill:var(--glow)}
 #duskLayer{transition:opacity .2s linear}
 #stars{transition:opacity .2s linear}
-#stars .s{fill:var(--star);animation:twinkle 3s ease-in-out infinite}
-#stars .sg{transform-box:fill-box;transform-origin:center;animation:starPulse 3s ease-in-out infinite}
+#stars .s{fill:var(--star);animation:tw0 4s ease-in-out infinite}
+#stars .s.t1{animation-name:tw1}
+#stars .s.t2{animation-name:tw2}
+#stars .s.t3{animation-name:tw3}
+#stars .sg{transform-box:fill-box;transform-origin:center;animation:gl0 4s ease-in-out infinite}
+#stars .sg.t1{animation-name:gl1}
+#stars .sg.t2{animation-name:gl2}
+#stars .sg.t3{animation-name:gl3}
+#stars .sx{fill:var(--star);transform-box:fill-box;transform-origin:center;animation:glint 4s ease-in-out infinite}
 #sun,#moon{transition:opacity .3s linear}
 #sun{transform-box:fill-box;transform-origin:center;animation:sunPulse 8s ease-in-out infinite alternate}
 @keyframes sunPulse{from{transform:scale(1)}to{transform:scale(1.045)}}
@@ -168,11 +175,23 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .cloud.c{animation-duration:86s;animation-delay:-55s}
 .cloud.d{animation-duration:124s;animation-delay:-15s}
 @keyframes drift{from{transform:translateX(-280px)}to{transform:translateX(1500px)}}
-/* A deep swing so each star visibly winks rather than just breathing. The
-   0%/100% frame is the bright resting state, which is also where
-   reduced-motion pins them. */
-@keyframes twinkle{0%,100%{opacity:1}28%{opacity:.28}52%{opacity:.95}76%{opacity:.4}}
-@keyframes starPulse{0%,100%{opacity:.9;transform:scale(1.25)}28%{opacity:.14;transform:scale(.7)}52%{opacity:.8;transform:scale(1.18)}76%{opacity:.24;transform:scale(.82)}}
+/* Real stars scintillate: they hold, dip sharply, flare, dip again — they
+   don't sway evenly. So each star gets one of four irregular cycles with
+   its own peaks, on its own duration and offset, and the four are staggered
+   against each other so no two neighbours ever move in step. The 0%/100%
+   frame is the bright resting state, which is also where reduced-motion
+   pins them. */
+@keyframes tw0{0%,100%{opacity:1}13%{opacity:.18}23%{opacity:.9}37%{opacity:.3}54%{opacity:1}71%{opacity:.14}87%{opacity:.72}}
+@keyframes tw1{0%,100%{opacity:.95}11%{opacity:.52}21%{opacity:.12}35%{opacity:1}49%{opacity:.26}66%{opacity:.88}82%{opacity:.2}}
+@keyframes tw2{0%,100%{opacity:1}17%{opacity:.28}29%{opacity:.62}43%{opacity:.1}59%{opacity:.96}75%{opacity:.34}89%{opacity:1}}
+@keyframes tw3{0%,100%{opacity:.92}9%{opacity:.24}26%{opacity:1}41%{opacity:.16}53%{opacity:.68}69%{opacity:.3}85%{opacity:1}}
+@keyframes gl0{0%,100%{opacity:.9;transform:scale(1.25)}13%{opacity:.06;transform:scale(.6)}23%{opacity:.72;transform:scale(1.1)}37%{opacity:.14;transform:scale(.72)}54%{opacity:.95;transform:scale(1.35)}71%{opacity:.05;transform:scale(.58)}87%{opacity:.5;transform:scale(1)}}
+@keyframes gl1{0%,100%{opacity:.82;transform:scale(1.18)}11%{opacity:.3;transform:scale(.88)}21%{opacity:.04;transform:scale(.55)}35%{opacity:.95;transform:scale(1.34)}49%{opacity:.12;transform:scale(.7)}66%{opacity:.7;transform:scale(1.12)}82%{opacity:.08;transform:scale(.62)}}
+@keyframes gl2{0%,100%{opacity:.88;transform:scale(1.22)}17%{opacity:.12;transform:scale(.68)}29%{opacity:.42;transform:scale(.96)}43%{opacity:.03;transform:scale(.52)}59%{opacity:.92;transform:scale(1.32)}75%{opacity:.16;transform:scale(.75)}89%{opacity:.86;transform:scale(1.2)}}
+@keyframes gl3{0%,100%{opacity:.86;transform:scale(1.2)}9%{opacity:.1;transform:scale(.64)}26%{opacity:.94;transform:scale(1.33)}41%{opacity:.06;transform:scale(.58)}53%{opacity:.46;transform:scale(.98)}69%{opacity:.14;transform:scale(.72)}85%{opacity:.9;transform:scale(1.26)}}
+/* The brightest few get a diffraction cross that flares with them — the thing
+   your eye actually reads as "twinkling". */
+@keyframes glint{0%,100%{opacity:.42;transform:scale(1)}18%{opacity:0;transform:scale(.2)}40%{opacity:.16;transform:scale(.7)}57%{opacity:.58;transform:scale(1.25)}76%{opacity:0;transform:scale(.25)}}
 
 .flock{animation:flyAcross 38s linear infinite}
 @keyframes flyAcross{from{transform:translate(var(--flyX0,-260px),var(--flyY0,265px))}
@@ -995,25 +1014,47 @@ function art(kind){
       </g>
       <g id="stars" opacity="0">`;
 
-  const SCOLS = Math.max(6, Math.round(W / 86)), SROWS = 9;
-  const cellW = W / SCOLS, cellH = (GROUND - 12) / SROWS;
+  /* Stars used to sit one per cell of a grid, and however much you jitter a
+     grid the rows and columns still read as lines. These are scattered at
+     random instead, but a new star is only kept if it lands far enough from
+     every star already placed — which spreads them evenly across the whole
+     sky without ever lining them up. Seeded, so the sky is the same on every
+     visit rather than reshuffling under you. */
+  let sd = 20260904 >>> 0;
+  const rnd = () => (sd = (Math.imul(sd, 1664525) + 1013904223) >>> 0) / 4294967296;
   /* Keep the sky around the moon clear: its disc is r=38 and its halo r=78,
      and it drifts up to 9px as it floats, so anything inside this radius
      would read as a star sitting on top of the moon. */
   const MOONCLEAR = 96;
-  for(let gy = 0; gy < SROWS; gy++){
-    for(let gx = 0; gx < SCOLS; gx++){
-      const k = gy * SCOLS + gx;
-      const jx = ((k * 73) % 97) / 97, jy = ((k * 149) % 89) / 89;
-      const sx = Math.round((gx + .12 + jx * .76) * cellW);
-      const sy = Math.round(12 + (gy + .12 + jy * .76) * cellH);
-      if(Math.hypot(sx - MOONX, sy - MOONY) < MOONCLEAR) continue;
-      const r = .85 + ((k * 31) % 7) * .21;
-      const beat = `animation-duration:${(2.2 + ((k * 17) % 11) * .26).toFixed(2)}s;animation-delay:-${(((k * 29) % 23) * .19).toFixed(2)}s`;
-      s += `<circle class="sg" cx="${sx}" cy="${sy}" r="${(r * 3.4).toFixed(1)}" fill="url(#starG)" opacity=".5" style="${beat}"/>`;
-      s += `<circle class="s" cx="${sx}" cy="${sy}" r="${r.toFixed(1)}" style="${beat}"/>`;
+  const skyTop = 10, skyBot = GROUND - 12;
+  const skyArea = W * Math.max(1, skyBot - skyTop);
+  const TARGET = Math.max(54, Math.min(230, Math.round(skyArea / 4800)));
+  const minGap = Math.sqrt(skyArea / TARGET) * .66;
+  const pts = [];
+  for(let tries = 0; tries < TARGET * 90 && pts.length < TARGET; tries++){
+    const px = 8 + rnd() * (W - 16);
+    const py = skyTop + rnd() * (skyBot - skyTop);
+    if(Math.hypot(px - MOONX, py - MOONY) < MOONCLEAR) continue;
+    let clear = true;
+    for(let i = 0; i < pts.length; i++){
+      if(Math.hypot(px - pts[i][0], py - pts[i][1]) < minGap){ clear = false; break; }
     }
+    if(clear) pts.push([px, py]);
   }
+  pts.forEach(([px, py], k) => {
+    const sx = Math.round(px), sy = Math.round(py);
+    const r = .8 + rnd() * 1.5;
+    const t = k % 4 ? ` t${k % 4}` : "";
+    const beat = `animation-duration:${(3.2 + rnd() * 3.4).toFixed(2)}s;animation-delay:-${(rnd() * 7).toFixed(2)}s`;
+    s += `<circle class="sg${t}" cx="${sx}" cy="${sy}" r="${(r * 3.6).toFixed(1)}" fill="url(#starG)" opacity=".5" style="${beat}"/>`;
+    s += `<circle class="s${t}" cx="${sx}" cy="${sy}" r="${r.toFixed(1)}" style="${beat}"/>`;
+    /* Only the handful of biggest stars get a cross, and a short thin one —
+       enough to catch the eye as it flares, not a cartoon sparkle. */
+    if(r > 2.14){
+      const L = (r * 3.1).toFixed(1), w = (r * .38).toFixed(1);
+      s += `<path class="sx" d="M${sx} ${sy - L}Q${sx + +w} ${sy - +w} ${sx + +L} ${sy}Q${sx + +w} ${sy + +w} ${sx} ${sy + +L}Q${sx - +w} ${sy + +w} ${sx - +L} ${sy}Q${sx - +w} ${sy - +w} ${sx} ${sy - L}Z" opacity=".35" style="${beat}"/>`;
+    }
+  });
   s += `</g>
       <g class="cloud" opacity=".5"><ellipse cx="${at(.07)}" cy="${Math.round(GROUND * 0.270)}" rx="46" ry="15" fill="var(--hero-far)"/><ellipse cx="${at(.07) + 38}" cy="${Math.round(GROUND * 0.259)}" rx="30" ry="17" fill="var(--hero-far)"/></g>
       <g class="cloud b" opacity=".38"><ellipse cx="${at(.25)}" cy="${Math.round(GROUND * 0.471)}" rx="58" ry="14" fill="var(--hero-far)"/><ellipse cx="${at(.25) - 44}" cy="${Math.round(GROUND * 0.460)}" rx="30" ry="15" fill="var(--hero-far)"/></g>
