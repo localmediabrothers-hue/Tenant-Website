@@ -392,7 +392,12 @@ footer{margin-top:64px;border-top:1px solid var(--line);background:var(--surface
 .foot .callus span{display:inline}
 
 /* ================= dialog ================= */
-dialog{border:1px solid var(--line);border-radius:16px;padding:0;max-width:660px;width:calc(100% - 28px);max-height:min(94vh,900px);background:var(--surface);color:var(--ink);box-shadow:var(--shadow-3);overflow:hidden;display:flex;flex-direction:column}
+/* Styling the bare `dialog` selector - including display:flex - beats the
+   browser's own `dialog:not([open]){display:none}` rule (author CSS always
+   wins over the browser's built-in styles, whatever the specificity), which
+   left the closed popup sitting visible in the page near the footer instead
+   of actually hidden. Scoping every rule to [open] fixes that. */
+dialog[open]{border:1px solid var(--line);border-radius:16px;padding:0;max-width:660px;width:calc(100% - 28px);max-height:min(94vh,900px);background:var(--surface);color:var(--ink);box-shadow:var(--shadow-3);overflow:hidden;display:flex;flex-direction:column}
 dialog::backdrop{background:rgba(10,15,11,.6);opacity:0;animation:fade .3s ease forwards}
 @keyframes fade{to{opacity:1}}
 dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
