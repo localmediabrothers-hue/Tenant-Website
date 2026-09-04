@@ -145,24 +145,6 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 
 /* ================= hero ================= */
 .hero{position:relative;min-height:min(92vh,820px);display:flex;align-items:flex-end;overflow:hidden}
-/* On a phone the copy and the search box used to sit over almost the whole
-   scene. More height, tighter type and a lighter scrim leave the street
-   visible behind them without costing legibility — the text carries its own
-   shadow either way. */
-@media(max-width:680px){
-  .hero{min-height:88vh}
-  .hero-content{padding:76px 20px 28px}
-  .hero-content h1{font-size:30px}
-  .hero-content p{font-size:16.5px;margin-top:12px}
-  .ticker{margin-bottom:14px}
-  .moneyline{font-size:16px;margin-top:14px}
-  .search{margin-top:18px;padding:16px}
-  /* the money line below says the same thing more concretely, so on a phone
-     this one is just four lines sitting on top of the scene */
-  .intro-long{display:none}
-  .hero-scrim{background:linear-gradient(to top,rgba(6,10,7,.5) 0%,rgba(6,10,7,.2) 42%,rgba(6,10,7,0) 74%)}
-  .hero-scrim-top{height:120px;background:linear-gradient(to bottom,rgba(6,10,7,.42) 0%,rgba(6,10,7,0) 100%)}
-}
 .hero-art{position:absolute;inset:0;z-index:0}
 .hero-art svg{width:100%;height:100%;display:block}
 .hero-art .w{fill:var(--hero-sky1);transition:fill .9s ease}
@@ -185,7 +167,7 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .cloud.c{animation-duration:86s;animation-delay:-55s}
 .cloud.d{animation-duration:124s;animation-delay:-15s}
 @keyframes drift{from{transform:translateX(-280px)}to{transform:translateX(1500px)}}
-@keyframes twinkle{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes twinkle{0%,100%{opacity:.7}50%{opacity:1}}
 
 .flock{animation:flyAcross 38s linear infinite}
 @keyframes flyAcross{from{transform:translate(var(--flyX0,-260px),var(--flyY0,265px))}
@@ -262,6 +244,28 @@ html{scroll-behavior:smooth}
   background:linear-gradient(180deg,rgba(255,255,255,.55) 0%,rgba(255,255,255,.16) 22%,rgba(255,255,255,0) 42%,rgba(255,255,255,0) 60%,rgba(255,255,255,.14) 80%,rgba(255,255,255,.5) 100%);
   -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
 @media(min-width:640px){.search{grid-template-columns:1fr auto;align-items:end}}
+
+/* On a phone the copy and the search box used to sit over almost the whole
+   scene. More height, tighter type and a lighter scrim leave the street
+   visible behind them without costing legibility — the text carries its own
+   shadow either way. Placed after the rules above so it actually wins the
+   cascade: same specificity, later wins, and this was previously written
+   *before* the desktop rules it was meant to override, so none of it was
+   ever taking effect. */
+@media(max-width:680px){
+  .hero{min-height:74vh}
+  .hero-content{padding:76px 20px 28px}
+  .hero-content h1{font-size:30px}
+  .hero-content p{font-size:16.5px;margin-top:12px}
+  .ticker{margin-bottom:14px}
+  .moneyline{font-size:16px;margin-top:14px}
+  .search{margin-top:18px;padding:16px}
+  /* the money line below says the same thing more concretely, so on a phone
+     this one is just four lines sitting on top of the scene */
+  .intro-long{display:none}
+  .hero-scrim{background:linear-gradient(to top,rgba(6,10,7,.5) 0%,rgba(6,10,7,.2) 42%,rgba(6,10,7,0) 74%)}
+  .hero-scrim-top{height:120px;background:linear-gradient(to bottom,rgba(6,10,7,.42) 0%,rgba(6,10,7,0) 100%)}
+}
 .field label{display:block;font-weight:600;font-size:15px;margin-bottom:7px;color:#fff}
 .field input,.field select{width:100%;padding:14px;border:1.5px solid rgba(255,255,255,.35);border-radius:8px;background:rgba(255,255,255,.14);color:#fff;font-size:17px;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
 .field input:focus,.field select:focus{border-color:#fff;outline:none;box-shadow:0 0 0 4px rgba(255,255,255,.18)}
@@ -926,7 +930,7 @@ function art(kind){
   const narrow = W < 620;
   const GROUND = Math.round(H * (narrow ? .56 : .87));
   const PAVE = Math.round(H * (narrow ? .63 : .934));
-  const TRAFFIC = narrow ? Math.round(H * .96) : PAVE;
+  const TRAFFIC = PAVE;
 
   /* Landmarks sit at fractions of the width so they stay sensibly placed
      whether the canvas ends up phone-narrow or desktop-wide. */
@@ -946,13 +950,21 @@ function art(kind){
         <stop offset="0" stop-color="var(--lamp)" stop-opacity=".9"/><stop offset="1" stop-color="var(--lamp)" stop-opacity="0"/>
       </radialGradient>
       <radialGradient id="moonG">
-        <stop offset="0" stop-color="var(--moon)" stop-opacity=".55"/><stop offset="1" stop-color="var(--moon)" stop-opacity="0"/>
+        <stop offset="0" stop-color="var(--moon)" stop-opacity=".7"/><stop offset="1" stop-color="var(--moon)" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="moonG2">
+        <stop offset="0" stop-color="var(--moon)" stop-opacity=".22"/><stop offset="1" stop-color="var(--moon)" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="moonSurface" cx="36%" cy="32%" r="72%">
+        <stop offset="0" stop-color="#FFFFFF" stop-opacity=".8"/>
+        <stop offset="45%" stop-color="var(--moon)" stop-opacity="1"/>
+        <stop offset="100%" stop-color="var(--crater)" stop-opacity=".85"/>
       </radialGradient>
       <radialGradient id="eyeG">
         <stop offset="0" stop-color="var(--cat-eye)" stop-opacity=".85"/><stop offset="1" stop-color="var(--cat-eye)" stop-opacity="0"/>
       </radialGradient>
       <radialGradient id="starG">
-        <stop offset="0" stop-color="var(--star)" stop-opacity=".9"/><stop offset="1" stop-color="var(--star)" stop-opacity="0"/>
+        <stop offset="0" stop-color="var(--star)" stop-opacity="1"/><stop offset="1" stop-color="var(--star)" stop-opacity="0"/>
       </radialGradient>
     </defs>
     <rect width="${W}" height="${H}" fill="url(#sky)"/>
@@ -960,18 +972,23 @@ function art(kind){
     <g id="skyLayer">
       <circle id="sun" cx="${MOONX}" cy="${MOONY}" r="42" fill="var(--glow)" opacity=".55"/>
       <g id="moon" opacity="0">
-        <circle class="moonGlow" cx="${MOONX}" cy="${MOONY}" r="78" fill="url(#moonG)"/>
-        <circle cx="${MOONX}" cy="${MOONY}" r="38" fill="var(--moon)"/>
+        <g class="moonGlow">
+          <circle cx="${MOONX}" cy="${MOONY}" r="118" fill="url(#moonG2)"/>
+          <circle cx="${MOONX}" cy="${MOONY}" r="78" fill="url(#moonG)"/>
+        </g>
+        <circle cx="${MOONX}" cy="${MOONY}" r="38" fill="url(#moonSurface)"/>
         <circle cx="${MOONX - 14}" cy="${MOONY - 12}" r="7.5" fill="var(--crater)" opacity=".55"/>
         <circle cx="${MOONX + 15}" cy="${MOONY + 11}" r="5.5" fill="var(--crater)" opacity=".5"/>
         <circle cx="${MOONX - 8}" cy="${MOONY + 17}" r="4" fill="var(--crater)" opacity=".45"/>
         <circle cx="${MOONX + 11}" cy="${MOONY - 14}" r="3" fill="var(--crater)" opacity=".4"/>
+        <circle cx="${MOONX + 4}" cy="${MOONY + 4}" r="2.6" fill="var(--crater)" opacity=".35"/>
+        <circle cx="${MOONX - 20}" cy="${MOONY + 2}" r="3.4" fill="var(--crater)" opacity=".4"/>
       </g>
       <g id="stars" opacity="0">`;
 
   for(let k = 0; k < 40; k++){
-    const sx = (k * 61 + 30) % W, sy = 26 + (k * 43) % 380, r = 1.5 + (k % 3) * .7;
-    s += `<circle cx="${sx}" cy="${sy}" r="${(r * 3.4).toFixed(1)}" fill="url(#starG)" opacity=".5"/>`;
+    const sx = (k * 61 + 30) % W, sy = 26 + (k * 43) % 380, r = 1.8 + (k % 3) * .9;
+    s += `<circle cx="${sx}" cy="${sy}" r="${(r * 4.4).toFixed(1)}" fill="url(#starG)" opacity=".65"/>`;
     s += `<circle class="s" cx="${sx}" cy="${sy}" r="${r}" style="animation-delay:${((k % 9) * .5).toFixed(1)}s"/>`;
   }
   s += `</g>
