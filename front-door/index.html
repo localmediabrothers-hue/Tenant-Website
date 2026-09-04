@@ -151,8 +151,8 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .hero-art .w.lit{fill:var(--glow)}
 #duskLayer{transition:opacity .2s linear}
 #stars{transition:opacity .2s linear}
-#stars .s{fill:var(--star);animation:twinkle 4.4s ease-in-out infinite}
-#stars .sg{transform-box:fill-box;transform-origin:center;animation:starPulse 4.4s ease-in-out infinite}
+#stars .s{fill:var(--star);animation:twinkle 3s ease-in-out infinite}
+#stars .sg{transform-box:fill-box;transform-origin:center;animation:starPulse 3s ease-in-out infinite}
 #sun,#moon{transition:opacity .3s linear}
 #sun{transform-box:fill-box;transform-origin:center;animation:sunPulse 8s ease-in-out infinite alternate}
 @keyframes sunPulse{from{transform:scale(1)}to{transform:scale(1.045)}}
@@ -168,8 +168,11 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .cloud.c{animation-duration:86s;animation-delay:-55s}
 .cloud.d{animation-duration:124s;animation-delay:-15s}
 @keyframes drift{from{transform:translateX(-280px)}to{transform:translateX(1500px)}}
-@keyframes twinkle{0%,100%{opacity:.7}50%{opacity:1}}
-@keyframes starPulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:.82;transform:scale(1.2)}}
+/* A deep swing so each star visibly winks rather than just breathing. The
+   0%/100% frame is the bright resting state, which is also where
+   reduced-motion pins them. */
+@keyframes twinkle{0%,100%{opacity:1}28%{opacity:.28}52%{opacity:.95}76%{opacity:.4}}
+@keyframes starPulse{0%,100%{opacity:.9;transform:scale(1.25)}28%{opacity:.14;transform:scale(.7)}52%{opacity:.8;transform:scale(1.18)}76%{opacity:.24;transform:scale(.82)}}
 
 .flock{animation:flyAcross 38s linear infinite}
 @keyframes flyAcross{from{transform:translate(var(--flyX0,-260px),var(--flyY0,265px))}
@@ -994,14 +997,19 @@ function art(kind){
 
   const SCOLS = Math.max(6, Math.round(W / 86)), SROWS = 9;
   const cellW = W / SCOLS, cellH = (GROUND - 12) / SROWS;
+  /* Keep the sky around the moon clear: its disc is r=38 and its halo r=78,
+     and it drifts up to 9px as it floats, so anything inside this radius
+     would read as a star sitting on top of the moon. */
+  const MOONCLEAR = 96;
   for(let gy = 0; gy < SROWS; gy++){
     for(let gx = 0; gx < SCOLS; gx++){
       const k = gy * SCOLS + gx;
       const jx = ((k * 73) % 97) / 97, jy = ((k * 149) % 89) / 89;
       const sx = Math.round((gx + .12 + jx * .76) * cellW);
       const sy = Math.round(12 + (gy + .12 + jy * .76) * cellH);
+      if(Math.hypot(sx - MOONX, sy - MOONY) < MOONCLEAR) continue;
       const r = .85 + ((k * 31) % 7) * .21;
-      const beat = `animation-duration:${(3.4 + ((k * 17) % 11) * .34).toFixed(2)}s;animation-delay:-${(((k * 29) % 23) * .27).toFixed(2)}s`;
+      const beat = `animation-duration:${(2.2 + ((k * 17) % 11) * .26).toFixed(2)}s;animation-delay:-${(((k * 29) % 23) * .19).toFixed(2)}s`;
       s += `<circle class="sg" cx="${sx}" cy="${sy}" r="${(r * 3.4).toFixed(1)}" fill="url(#starG)" opacity=".5" style="${beat}"/>`;
       s += `<circle class="s" cx="${sx}" cy="${sy}" r="${r.toFixed(1)}" style="${beat}"/>`;
     }
