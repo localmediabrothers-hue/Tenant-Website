@@ -1403,19 +1403,22 @@ function matching(){
   const q = whereEl.value.trim().toLowerCase();
   const bedWant = bedFilter.value ? Number(bedFilter.value) : null;
   const priceMax = priceFilter.value ? Number(priceFilter.value) : null;
-  /* A street address rarely spells out the town - "53 Charminster Drive,
-     CV3 5AE" has no "Coventry" in it anywhere - so a plain substring check
-     against the address misses every city search. The area field is
-     matched word-by-word, and a word only has to *start with* what was
-     typed, so "cov" finds "Coventry" the way an autocomplete would. */
+  /* Every searchable bit of text - area, street, postcode, title - is
+     split into whole words, and a word only counts as a match if it
+     *starts with* what was typed. That's what makes "cov" find "Coventry"
+     and "cv3" find a "CV3 5AE" postcode without a dedicated postcode
+     field, while a single stray letter or a misspelling - which won't be
+     the start of any real word here - correctly matches nothing. A loose
+     "appears anywhere in the address" check used to let something like a
+     single "n" match almost every listing, since it happened to sit
+     mid-word in the street name. */
   return HOMES.filter(h => {
     if(activeType === "saved"){ if(!saved.includes(String(h.id))) return false; }
     else if(activeType === "access"){ if(!h.tags.some(t => t[0] === "access")) return false; }
     else if(activeType !== "all" && h.type !== activeType) return false;
     if(q){
-      const areaWords = (h.area || "").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
-      const areaMatch = areaWords.some(w => w.startsWith(q));
-      if(!(areaMatch || h.addr.toLowerCase().includes(q) || h.title.toLowerCase().includes(q))) return false;
+      const hWords = [h.area, h.addr, h.title].join(" ").toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+      if(!hWords.some(w => w.startsWith(q))) return false;
     }
     if(bedWant !== null){
       if(bedWant === 4){ if(!(h.size >= 4)) return false; }
