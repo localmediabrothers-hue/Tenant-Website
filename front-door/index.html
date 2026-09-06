@@ -1717,6 +1717,19 @@ function openDetail(h, opts){
   resetEnquiry();
   drawCalc();
   dlg.showModal();
+  /* The pop-up's content scrolls, and nothing reset that scroll position -
+     so reopening it (even for a different listing) after scrolling down
+     once left the facts list, and everything above the current scroll
+     position, effectively hidden until you noticed you could scroll up.
+     This has to run after every innerHTML update above and after
+     showModal(): setting it any earlier let the browser's scroll anchoring
+     quietly pull it away from 0 again once that content changed the
+     scrollable area's height. */
+  const dBody = dlg.querySelector(".d-body");
+  if(dBody){
+    dBody.scrollTop = 0;
+    requestAnimationFrame(() => { dBody.scrollTop = 0; });
+  }
 
   if(opts && opts.fromHash){
     openedFromHash = true; pushedForOpen = false;
