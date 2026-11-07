@@ -655,6 +655,10 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
         </label>
       </div>
       <p class="count" id="count" role="status"></p>
+      <button class="btn-text" type="button" id="registerInterestToggle">
+        Can't see the right place? Register your interest &rarr;
+      </button>
+      <div class="waitlist" id="waitlistStandalone" hidden></div>
     </section>
 
     <section class="map-view" id="mapView" hidden aria-label="Properties on a map">
@@ -796,6 +800,10 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
           <option>Any time</option><option>Morning</option><option>Afternoon</option><option>Evening</option>
         </select>
       </div>
+      <div class="eq-row">
+        <label for="eqBenefits">Are you claiming benefits? <span class="eq-opt">(not including Housing Benefit, as that doesn't count)</span></label>
+        <select id="eqBenefits"><option value="">Please choose</option><option value="yes">Yes</option><option value="no">No</option></select>
+      </div>
       <button class="btn" type="button" id="eqSend">Send my details</button>
       <p class="eq-note">We pass this to the landlord of this property and nobody else.</p>
     </div>
@@ -885,7 +893,7 @@ const SUPABASE_URL = "https://ntiyuoytqsqnbhfzmjma.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_xk9WqdKf9JxvWMHtPc-shA_MA10bK6g";
 const SUPABASE_CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT");
 
-async function submitEnquiryToPortal(h, { name, phone, email, when }){
+async function submitEnquiryToPortal(h, { name, phone, email, when, benefits }){
   if(!SUPABASE_CONFIGURED){
     console.warn("[Front Door] Supabase isn't configured yet (see SUPABASE_URL near the top of this file) — this enquiry was not sent anywhere.");
     return { ok:false, configured:false };
@@ -909,7 +917,8 @@ async function submitEnquiryToPortal(h, { name, phone, email, when }){
       },
       body: JSON.stringify({
         property_id: h.id,
-        tenant_name: name, tenant_phone: phone, tenant_email: email || null, best_time: when
+        tenant_name: name, tenant_phone: phone, tenant_email: email || null, best_time: when,
+        claiming_benefits: benefits
       })
     });
     if(!res.ok) throw new Error(`submit-enquiry returned ${res.status}: ${await res.text()}`);
@@ -1586,10 +1595,15 @@ function mountWaitlist(el){
   if(!el) return;
   el.innerHTML = `<div class="enquire">
     <h4>Join the waiting list</h4>
-    <p class="eq-lead">Leave your number and we'll ring you the moment something matches.</p>
+    <p class="eq-lead">Leave your details and we'll be in touch the moment something matches.</p>
     <div class="eq-row"><label for="wlName">Your name</label><input id="wlName" type="text" autocomplete="name"></div>
     <div class="eq-row"><label for="wlPhone">Phone number</label><input id="wlPhone" type="tel" autocomplete="tel" inputmode="tel"></div>
+    <div class="eq-row"><label for="wlEmail">Email <span class="eq-opt">(if you have one)</span></label><input id="wlEmail" type="email" inputmode="email" autocomplete="email"></div>
     <div class="eq-row"><label for="wlArea">Area you're looking in <span class="eq-opt">(optional)</span></label><input id="wlArea" type="text" placeholder="e.g. Peckham, SE15"></div>
+    <div class="eq-row">
+      <label for="wlBenefits">Are you claiming benefits? <span class="eq-opt">(not including Housing Benefit, as that doesn't count)</span></label>
+      <select id="wlBenefits"><option value="">Please choose</option><option value="yes">Yes</option><option value="no">No</option></select>
+    </div>
     <button class="btn" type="button" id="wlSend">Join the waiting list</button>
   </div>`;
   $("wlSend").onclick = submitWaitlist;
@@ -1598,9 +1612,13 @@ function mountWaitlist(el){
 async function submitWaitlist(){
   const name = $("wlName").value.trim();
   const phone = $("wlPhone").value.replace(/[^0-9+]/g, "");
+  const email = $("wlEmail").value.trim();
   const area = $("wlArea").value.trim();
+  const benefits = $("wlBenefits").value;
   if(name.length < 2){ toast("We just need your name first."); $("wlName").focus(); return; }
   if(phone.length < 9){ toast("That number looks too short — can you check it?"); $("wlPhone").focus(); return; }
+  if(email && !email.includes("@")){ toast("That email doesn't look quite right."); $("wlEmail").focus(); return; }
+  if(!benefits){ toast("Please let us know if you're claiming benefits."); $("wlBenefits").focus(); return; }
 
   const btn = $("wlSend");
   btn.disabled = true; btn.textContent = "Sending…";
@@ -1609,12 +1627,13 @@ async function submitWaitlist(){
     const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-waitlist`, {
       method:"POST",
       headers:{ apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}`, "Content-Type":"application/json" },
-      body: JSON.stringify({ name, phone, area: area || null,
-        bedrooms_needed: bedFilter.value ? Number(bedFilter.value) : null })
+      body: JSON.stringify({ name, phone, email: email || null, area: area || null,
+        bedrooms_needed: bedFilter.value ? Number(bedFilter.value) : null,
+        claiming_benefits: benefits === "yes" })
     });
     if(!res.ok) throw new Error(`waitlist failed: ${res.status}`);
     const box = btn.closest(".enquire");
-    if(box) box.innerHTML = `<h4>You're on the list</h4><p class="eq-lead">We'll ring you on ${esc(phone)} the moment something matches. If you'd rather talk now, call 020 7946 0000.</p>`;
+    if(box) box.innerHTML = `<h4>You're on the list</h4><p class="eq-lead">We'll be in touch on ${esc(phone)} the moment something matches. If you'd rather talk now, call 020 7946 0000.</p>`;
   }catch(e){
     console.error("[Front Door] Waiting list signup failed:", e);
     btn.disabled = false; btn.textContent = "Join the waiting list";
@@ -1931,15 +1950,17 @@ async function sendEnquiry(){
   const name = $("eqName").value.trim();
   const phone = $("eqPhone").value.replace(/[^0-9+]/g, "");
   const email = $("eqEmail").value.trim();
+  const benefits = $("eqBenefits").value;
   if(name.length < 2){ toast("We just need your name first."); $("eqName").focus(); return; }
   if(phone.length < 9){ toast("That number looks too short — can you check it?"); $("eqPhone").focus(); return; }
   if(email && !email.includes("@")){ toast("That email doesn't look quite right."); $("eqEmail").focus(); return; }
+  if(!benefits){ toast("Please let us know if you're claiming benefits."); $("eqBenefits").focus(); return; }
   const when = $("eqWhen").value.toLowerCase();
 
   const sendBtn = $("eqSend");
   sendBtn.disabled = true;
   sendBtn.textContent = "Sending…";
-  const result = await submitEnquiryToPortal(current, { name, phone, email, when });
+  const result = await submitEnquiryToPortal(current, { name, phone, email, when, benefits: benefits === "yes" });
   sendBtn.disabled = false;
   sendBtn.textContent = "Send my details";
 
@@ -1951,8 +1972,8 @@ async function sendEnquiry(){
   enquireBox.innerHTML = `<div class="eq-done">
     <div class="tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></div>
     <h4>Thanks ${esc(name)}, that's with us</h4>
-    <p>We'll ring you ${when === "any time" ? "as soon as we can" : when} about
-    ${esc(current.title.toLowerCase())} on ${esc(current.addr.split(",")[0])}.
+    <p>The landlord will be in touch about
+    ${esc(current.title.toLowerCase())} on ${esc(current.addr.split(",")[0])} to arrange a viewing.
     If you'd rather not wait, call us on 020 7946 0000.</p>
   </div>`;
 }
@@ -1989,6 +2010,14 @@ chips.addEventListener("click", e => {
 $("searchForm").addEventListener("submit", e => { e.preventDefault(); render(); });
 $("mapToggle").addEventListener("click", () => { mapVisible ? showList() : showMap(); });
 $("mapBack").addEventListener("click", showList);
+
+$("registerInterestToggle").addEventListener("click", () => {
+  const box = $("waitlistStandalone");
+  const opening = box.hidden;
+  box.hidden = !opening;
+  if(opening && !box.innerHTML) mountWaitlist(box);
+  if(opening) box.scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block:"nearest"});
+});
 bedFilter.addEventListener("change", render);
 priceFilter.addEventListener("change", render);
 let searchDebounce;
