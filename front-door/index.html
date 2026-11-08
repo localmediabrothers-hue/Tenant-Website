@@ -131,9 +131,11 @@ header.top:not(.stuck) .brand .mark rect:not(.lite){fill:#fff}
 .top nav a.link{color:rgba(255,255,255,.85);text-decoration:none;font-weight:500;font-size:16px;transition:color .3s ease}
 header.top.stuck nav a.link{color:var(--ink)}
 .top nav a.link:hover{text-decoration:underline;text-underline-offset:4px}
-.callus{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:8px 14px;font-weight:700;text-decoration:none;font-size:16px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .3s ease,color .3s ease,border-color .3s ease}
-header.top.stuck .callus{background:var(--accent-soft);color:var(--accent);border-color:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
-.callus svg{width:17px;height:17px;flex:none}
+.callus,.whatsappus{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:8px 14px;font-weight:700;text-decoration:none;font-size:16px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .3s ease,color .3s ease,border-color .3s ease}
+header.top.stuck .callus,header.top.stuck .whatsappus{background:var(--accent-soft);color:var(--accent);border-color:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
+.callus svg,.whatsappus svg{width:17px;height:17px;flex:none}
+.whatsappus{background:#25D366;border-color:#25D366;color:#fff}
+header.top.stuck .whatsappus{background:#25D366;color:#fff}
 .savedbtn{display:flex;align-items:center;gap:8px;background:transparent;border:2px solid rgba(255,255,255,.4);border-radius:8px;padding:6px 13px;font-weight:600;font-size:16px;color:#fff;cursor:pointer;transition:border-color .2s ease,background .2s ease,color .3s ease}
 header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .savedbtn:hover{border-color:var(--heart)}
@@ -141,7 +143,7 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .savedbtn .n{min-width:19px;height:19px;border-radius:10px;background:var(--heart);color:var(--surface);font-size:12.5px;font-weight:700;display:grid;place-items:center;padding:0 5px;line-height:1}
 .savedbtn.bump{animation:bump .45s cubic-bezier(.2,1.6,.4,1)}
 @keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.16)}100%{transform:scale(1)}}
-@media(max-width:760px){.top nav a.link,.callus span{display:none}.callus{padding:9px 11px}}
+@media(max-width:760px){.top nav a.link,.callus span,.whatsappus span{display:none}.callus,.whatsappus{padding:9px 11px}}
 
 /* ================= hero ================= */
 .hero{position:relative;min-height:min(92vh,820px);display:flex;align-items:flex-end;overflow:hidden}
@@ -295,6 +297,7 @@ html{scroll-behavior:smooth}
 .field input:focus,.field select:focus{border-color:#fff;outline:none;box-shadow:0 0 0 4px rgba(255,255,255,.18)}
 .field input::placeholder{color:rgba(255,255,255,.62)}
 .btn{background:var(--accent);color:var(--on-accent);border:2px solid var(--accent);border-radius:8px;padding:14px 26px;font-weight:700;font-size:17px;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .12s ease;white-space:nowrap}
+.btn:disabled{background:var(--line);border-color:var(--line);color:var(--muted);cursor:default}
 .btn-map{background:transparent;color:var(--on-accent-2,var(--ink));border-color:rgba(255,255,255,.5);display:inline-flex;align-items:center;gap:8px}
 .btn-map svg{fill:currentColor;flex:none}
 .search .btn-map{background:rgba(255,255,255,.08);color:#fff}
@@ -340,6 +343,7 @@ html{scroll-behavior:smooth}
 .card .hit{all:unset;position:absolute;inset:0;z-index:1;cursor:pointer}
 .card .hit:focus-visible{outline:3px solid var(--accent);outline-offset:-4px;border-radius:14px}
 .pic{position:relative;aspect-ratio:16/10;background:var(--sky);overflow:hidden}
+.room-badge{position:absolute;left:12px;bottom:12px;z-index:3;background:rgba(23,30,25,.72);color:#fff;font-size:13px;font-weight:700;padding:5px 10px;border-radius:7px;backdrop-filter:blur(4px)}
 .pic svg,.pic img{width:100%;height:100%;display:block;object-fit:cover;transition:transform .5s cubic-bezier(.2,.8,.3,1)}
 .card:hover .pic svg,.card:focus-within .pic svg,.card:hover .pic img,.card:focus-within .pic img{transform:scale(1.045)}
 .pic .w{fill:var(--glass);transition:fill .45s ease}
@@ -420,6 +424,20 @@ html{scroll-behavior:smooth}
 .scale div b{display:block;font-family:var(--f-display);font-size:19px;font-weight:800;color:var(--ink)}
 .scale div:hover{background:var(--sun-soft)}
 
+/* ================= about ================= */
+.about{margin:64px 0 0;background:var(--accent-soft);border-radius:14px;padding:36px 32px}
+.about h2{font-size:clamp(23px,3.2vw,30px);font-weight:800;color:var(--accent)}
+.about-lead{margin:14px 0 0;color:var(--ink);font-size:17px;line-height:1.6;max-width:72ch}
+
+/* ================= testimonials ================= */
+.testimonials{margin:64px 0 0}
+.testimonials h2{font-size:clamp(23px,3.2vw,30px);font-weight:800}
+.t-grid{display:grid;gap:18px;margin-top:24px}
+@media(min-width:820px){.t-grid{grid-template-columns:repeat(3,1fr)}}
+.t-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:24px;margin:0}
+.t-card p{margin:0;font-size:16.5px;color:var(--ink);line-height:1.55;font-family:var(--f-display)}
+.t-card cite{display:block;margin-top:14px;font-style:normal;font-weight:700;color:var(--muted);font-size:14.5px}
+
 /* ================= help ================= */
 .help{margin:64px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:32px 28px}
 .help h2{font-size:24px;font-weight:800}
@@ -433,7 +451,9 @@ footer{margin-top:64px;border-top:1px solid var(--line);background:var(--surface
 .foot{padding:34px 0;display:flex;gap:26px;flex-wrap:wrap;align-items:center}
 .foot p{margin:0;color:var(--muted);font-size:16px;max-width:50ch}
 .foot .callus{margin-left:auto}
-.foot .callus span{display:inline}
+.foot .callus,.foot .whatsappus{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.foot .callus span,.foot .whatsappus span{display:inline}
+.foot .whatsappus{background:#25D366;color:#fff}
 
 /* ================= dialog ================= */
 /* Styling the bare `dialog` selector - including display:flex - beats the
@@ -463,6 +483,23 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 .d-body > *{min-width:0}
 .d-body h2{font-size:27px;font-weight:800}
 .d-head p{margin:6px 0 0;color:var(--muted);font-size:16.5px}
+
+#compareDialog[open]{max-width:960px}
+.cmp-grid{display:grid;gap:16px}
+@media(min-width:700px){.cmp-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
+.cmp-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.cmp-card .pic{aspect-ratio:16/10}
+.cmp-body{padding:16px;display:grid;gap:10px}
+.cmp-body h4{font-size:16.5px;font-weight:700}
+.cmp-body .addr{color:var(--muted);font-size:14px;margin-top:-6px}
+.cmp-row{display:flex;justify-content:space-between;gap:10px;font-size:14.5px;border-top:1px solid var(--line-soft);padding-top:8px}
+.cmp-row span:first-child{color:var(--muted)}
+.cmp-row span:last-child{font-weight:600;text-align:right}
+.cmp-feat{display:flex;gap:6px;flex-wrap:wrap}
+.cmp-feat .tag{font-size:12.5px;padding:3px 9px}
+.cmp-actions{display:flex;gap:8px;margin-top:4px}
+.cmp-actions .btn-sm{flex:1}
+.cmp-empty{color:var(--muted);text-align:center;padding:30px 10px}
 
 .calc{border:2px solid var(--accent-soft);border-radius:14px;padding:18px;background:var(--surface-2)}
 .calc h3{font-size:17.5px;font-weight:800;margin-bottom:3px}
@@ -517,12 +554,14 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 .room-info b{display:block;font-size:16px}
 .room-info span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
 .room-price{font-weight:700;font-size:16px;white-space:nowrap}
-.room-row .btn-sm{padding:9px 16px;font-size:14.5px;border-radius:8px;background:var(--accent);color:var(--surface);border:0;font-weight:700;cursor:pointer;white-space:nowrap}
-.room-row .btn-sm.btn-2{background:var(--surface-2);color:var(--ink)}
+.btn-sm{padding:9px 16px;font-size:14.5px;border-radius:8px;background:var(--accent);color:var(--surface);border:0;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-sm.btn-2{background:var(--surface-2);color:var(--ink)}
 .room-taken-label{font-size:14px;font-weight:600;color:var(--muted);white-space:nowrap}
 .d-rooms-empty{border:1px dashed var(--line);border-radius:10px;padding:16px;color:var(--muted);text-align:center}
 .d-features{display:flex;gap:7px;flex-wrap:wrap}
 .d-features .tag{background:var(--surface-2);color:var(--muted)}
+.feature-tag{display:inline-flex;align-items:center;gap:6px}
+.feature-tag svg{width:16px;height:16px;flex:none}
 
 .enquire{border:2px solid var(--accent);border-radius:14px;padding:20px;background:var(--accent-soft)}
 .enquire h4{font-family:var(--f-display);font-size:19px;font-weight:700;color:var(--accent)}
@@ -583,9 +622,17 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 3.5C20 16 12 21 12 21z"/></svg>
         Saved <span class="n" id="savedN">0</span>
       </button>
-      <a class="callus" href="tel:02079460000">
+      <button class="savedbtn" type="button" id="compareBtn" hidden>
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 3v18H5V3h4zm10 6v12h-4V9h4zM14 3v18h-4V3h4z"/></svg>
+        Compare <span class="n" id="compareN">0</span>
+      </button>
+      <a class="callus" href="tel:07477488077">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .57 3.6 1 1 0 0 1-.25 1z"/></svg>
-        <span>020 7946 0000</span>
+        <span>07477 488077</span>
+      </a>
+      <a class="whatsappus" id="whatsappNav" href="#" target="_blank" rel="noreferrer">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.3-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.1 0-.3 0-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.3-.8.8-.8 1.9s.8 2.2.9 2.4c.1.2 1.6 2.4 3.8 3.4.5.2.9.4 1.3.5.5.2 1 .1 1.3.1.4-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.4-.3z"/></svg>
+        <span>Chat with us on WhatsApp</span>
       </a>
     </nav>
   </div>
@@ -745,15 +792,42 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
         </div>
       </div>
     </section>
+
+    <section class="about reveal" id="about">
+      <h2>Why Front Door</h2>
+      <p class="about-lead">Front Door exists to make transitional housing simple, safe and quick to move into, at exactly the moment people need that most. We work with landlords to offer places that are easy to move into and just as easy to move on from when you're ready for the next step — with your Housing Benefit or Universal Credit covering the cost, so there's no rent to chase and no stress hanging over you while you get back on your feet. Alongside a safe, stable place to live, we check in regularly and offer support to anyone who'd like a hand along the way — practical help, never pressure. It's housing built for people who are between places, not for people who plan to stay forever, and we're honest about that from day one.</p>
+    </section>
+
+    <section class="testimonials reveal" id="testimonials" aria-labelledby="testimonialslabel">
+      <h2 id="testimonialslabel">What people say</h2>
+      <div class="t-grid">
+        <blockquote class="t-card reveal">
+          <p>&ldquo;It was a quick and easy process to move in and no issues so far. It's been a dream.&rdquo;</p>
+          <cite>Jenny</cite>
+        </blockquote>
+        <blockquote class="t-card reveal">
+          <p>&ldquo;It's lovely to have such a reliable team get me this room and then also make sure I'm okay after. Any issues at the house will get a team sent out straight away.&rdquo;</p>
+          <cite>David</cite>
+        </blockquote>
+        <blockquote class="t-card reveal">
+          <p>&ldquo;The room is great.&rdquo;</p>
+          <cite>Front Door tenant</cite>
+        </blockquote>
+      </div>
+    </section>
   </div>
 </main>
 
 <footer>
   <div class="wrap foot">
     <p><strong>Front Door</strong> — homes to rent for people on Housing Benefit and Universal Credit. We're open 9am to 6pm, Monday to Friday. Prices on this page are examples.</p>
-    <a class="callus" href="tel:02079460000">
+    <a class="callus" href="tel:07477488077">
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.58 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .57 3.6 1 1 0 0 1-.25 1z"/></svg>
-      <span>020 7946 0000</span>
+      <span>07477 488077</span>
+    </a>
+    <a class="whatsappus" id="whatsappFoot" href="#" target="_blank" rel="noreferrer">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.3-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.1 0-.3 0-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.3-.8.8-.8 1.9s.8 2.2.9 2.4c.1.2 1.6 2.4 3.8 3.4.5.2.9.4 1.3.5.5.2 1 .1 1.3.1.4-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.4-.3z"/></svg>
+      <span>Chat with us on WhatsApp</span>
     </a>
   </div>
 </footer>
@@ -826,8 +900,20 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
       <p class="eq-note">We pass this to the landlord of this property and nobody else.</p>
     </div>
     <div class="d-actions">
+      <button class="btn" type="button" id="dAskPrimary">Ask to view this</button>
       <button class="btn btn-2" type="button" id="dSave">Save it</button>
     </div>
+  </div>
+</dialog>
+
+<dialog id="compareDialog" aria-labelledby="cmpTitle">
+  <button class="d-x" type="button" id="cmpClose" aria-label="Close">&times;</button>
+  <div class="d-body">
+    <div class="d-head">
+      <h2 id="cmpTitle">Compare your saved places</h2>
+      <p>Side by side, so it's easier to pick.</p>
+    </div>
+    <div id="cmpGrid" class="cmp-grid"></div>
   </div>
 </dialog>
 
@@ -913,12 +999,19 @@ DEMO_HOMES.forEach(h => {
 const DEMO_MODE = new URLSearchParams(location.search).get("demo") === "1";
 
 /* Fixed list of property features - matches the tick-list in the provider
-   portal exactly, so a value picked there always has a label to show here. */
+   portal exactly, so a value picked there always has a label and an icon to
+   show here. Each icon is a small inline SVG rather than an image file, so
+   there's nothing extra to load. */
 const FEATURE_LABELS = {
-  parking: "Free parking", pets_allowed: "Pets allowed", garden: "Garden",
-  step_free_access: "Step-free access", furnished: "Furnished",
-  wifi_included: "Wifi included", washing_machine: "Washing machine",
-  bike_storage: "Bike storage"
+  parking: { label: "Free parking", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3h7a5 5 0 0 1 0 10h-4v8H6V3zm3 3v4h4a2 2 0 0 0 0-4H9z"/></svg>' },
+  pets_allowed: { label: "Pets allowed", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="9" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="9" r="2"/><path d="M12 11c3 0 6 2.2 6 5.2 0 2.1-1.8 3.3-3.8 2.6a5 5 0 0 0-4.4 0C7.8 19.5 6 18.3 6 16.2 6 13.2 9 11 12 11z"/></svg>' },
+  garden: { label: "Garden", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22v-7"/><path d="M12 15C6 15 4 10 4 6c5 0 8 2.5 8 7 0-4.5 3-7 8-7 0 4-2 9-8 9z"/></svg>' },
+  step_free_access: { label: "Step-free access", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="4" r="2"/><path d="M11 8h3l3 3-1.4 1.4L13.5 10H12l.8 3 3.7 1.5-.8 1.9-4-1.6-1-3.8-1.7 5.6-2-.6 2-7z"/></svg>' },
+  furnished: { label: "Furnished", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 11V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4a2 2 0 0 1 1 1.7V17h-2v-2H6v2H4v-4.3A2 2 0 0 1 5 11zm2-4v4h10V7H7z"/></svg>' },
+  wifi_included: { label: "Wifi included", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 18.5a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2zM8.3 13.8a5.3 5.3 0 0 1 7.4 0l-1.6 1.6a3 3 0 0 0-4.2 0zM5 10.5a9.4 9.4 0 0 1 14 0l-1.6 1.6a7 7 0 0 0-10.8 0z"/></svg>' },
+  washing_machine: { label: "Washing machine", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm1 2v2h2V5H6zm6.5 2A5.5 5.5 0 1 0 18 12.5 5.5 5.5 0 0 0 12.5 7zm0 2a3.5 3.5 0 1 1-3.5 3.5A3.5 3.5 0 0 1 12.5 9z"/></svg>' },
+  bike_storage: { label: "Bike storage", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="17.5" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18.5" cy="17.5" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 17.5 9 10h4l3 7.5M9 10l2-3h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
+  communal_area: { label: "Communal area", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="8" cy="8" r="2.6"/><circle cx="16" cy="8" r="2.6"/><path d="M2 19c0-3 2.7-5 6-5s6 2 6 5v1H2zM13.4 14.3c2.6.5 4.6 2.3 4.6 4.7v1h4v-1c0-2.5-2.3-4.3-4.9-4.7a4.6 4.6 0 0 1-3.7 0z"/></svg>' }
 };
 
 /* A property's rooms, cheapest-priced first. "Available" rooms are what a
@@ -948,6 +1041,20 @@ const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const SUPABASE_URL = "https://ntiyuoytqsqnbhfzmjma.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_xk9WqdKf9JxvWMHtPc-shA_MA10bK6g";
 const SUPABASE_CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT");
+
+/* ---------------- contact details ----------------
+   One place to update if the phone/WhatsApp number ever changes - every
+   "call us" link and toast message on the page reads from here. */
+const CONTACT_PHONE = "07477488077";
+const CONTACT_PHONE_DISPLAY = "07477 488077";
+const WHATSAPP_NUMBER = "447477488077"; // UK number in international format, no leading +
+const whatsappLink = (text) => `https://wa.me/${WHATSAPP_NUMBER}` + (text ? `?text=${encodeURIComponent(text)}` : "");
+{
+  const link = whatsappLink("Hi, I've got a question about a room on the Front Door website.");
+  const nav = document.getElementById("whatsappNav"), foot = document.getElementById("whatsappFoot");
+  if(nav) nav.href = link;
+  if(foot) foot.href = link;
+}
 
 async function submitEnquiryToPortal(h, { name, phone, email, when, benefits, roomId }){
   if(!SUPABASE_CONFIGURED){
@@ -1710,11 +1817,11 @@ async function submitWaitlist(){
     });
     if(!res.ok) throw new Error(`waitlist failed: ${res.status}`);
     const box = btn.closest(".enquire");
-    if(box) box.innerHTML = `<h4>You're on the list</h4><p class="eq-lead">We'll be in touch on ${esc(phone)} the moment something matches. If you'd rather talk now, call 020 7946 0000.</p>`;
+    if(box) box.innerHTML = `<h4>You're on the list</h4><p class="eq-lead">We'll be in touch on ${esc(phone)} the moment something matches. If you'd rather talk now, call ${CONTACT_PHONE_DISPLAY}.</p>`;
   }catch(e){
     console.error("[Front Door] Waiting list signup failed:", e);
     btn.disabled = false; btn.textContent = "Join the waiting list";
-    toast("That didn't send — please try again, or call us on 020 7946 0000.");
+    toast(`That didn't send — please try again, or call us on ${CONTACT_PHONE_DISPLAY}.`);
   }
 }
 
@@ -1770,7 +1877,9 @@ function render(){
               aria-label="${saved.includes(String(h.id)) ? "Remove from saved" : "Save this place"}">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.3-4.6-7.3-9.7A4.1 4.1 0 0 1 12 7.4a4.1 4.1 0 0 1 7.3 3.4c0 5.1-7.3 9.7-7.3 9.7z"/></svg>
       </button>
-      <div class="pic">${pic(h)}</div>
+      <div class="pic">${pic(h)}
+        ${(h.rooms || []).length > 1 ? `<span class="room-badge">${availableRooms(h).length} of ${h.rooms.length} rooms available</span>` : ""}
+      </div>
       <div class="card-body">
         <div class="price">${h.month
           ? `<span class="m" data-count="${h.month}">£0</span><span class="w2">a month rent &middot; covered by your benefit</span>`
@@ -1852,9 +1961,19 @@ function toggleSave(id){
   const btn = $("savedBtn");
   btn.classList.remove("bump"); void btn.offsetWidth; btn.classList.add("bump");
   $("savedN").textContent = saved.length;
+  updateCompareVisibility();
   toast(on ? "Removed from your saved places" : "Saved. It'll be here when you come back.");
   if(dlg.open && current && String(current.id) === id) $("dSave").textContent = on ? "Save it" : "Saved";
   render();
+}
+
+/* "Compare" only earns its place in the header once there's something to
+   actually compare — one saved place is just "View it", two or more is
+   where a side-by-side table starts being useful. */
+function updateCompareVisibility(){
+  const btn = $("compareBtn");
+  $("compareN").textContent = saved.length;
+  btn.hidden = saved.length < 2;
 }
 
 /* ---------------- detail + calculator ---------------- */
@@ -1960,7 +2079,7 @@ function openDetail(h, opts){
   if(h.maxStay) extraFacts.push(["Typical stay", h.maxStay]);
   $("dFacts").innerHTML = [...h.facts, ...extraFacts].map(f => `<div><span>${f[0]}</span><span>${f[1]}</span></div>`).join("");
   $("dFeatures").innerHTML = (h.features || []).filter(f => FEATURE_LABELS[f])
-    .map(f => `<span class="tag">${FEATURE_LABELS[f]}</span>`).join("");
+    .map(f => `<span class="tag feature-tag">${FEATURE_LABELS[f].icon}${FEATURE_LABELS[f].label}</span>`).join("");
   $("dSave").textContent = saved.includes(String(h.id)) ? "Saved" : "Save it";
   benefitEl.value = benefit ? Math.round(benefit) : "";
   benefitUnit.value = "w";
@@ -2040,9 +2159,21 @@ function resetEnquiry(){
 function renderRooms(h){
   const rooms = h.rooms || [];
   const avail = availableRooms(h);
+  const primary = $("dAskPrimary");
   if(!avail.length){
     $("dRooms").innerHTML = `<div class="d-rooms-empty"><b>Nothing available right now</b><br>Every room here is taken at the moment.</div>`;
+    primary.disabled = true;
+    primary.textContent = "Nothing available right now";
+    primary.onclick = null;
     return;
+  }
+  primary.disabled = false;
+  if(avail.length === 1){
+    primary.textContent = "Ask to view this room";
+    primary.onclick = () => openRoomAsk(avail[0]);
+  }else{
+    primary.textContent = "Ask to view a room";
+    primary.onclick = () => $("dRooms").scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block:"start"});
   }
   const rows = rooms.map(r => {
     const size = r.size_sqm ? ` &middot; ${r.size_sqm}m&sup2;` : "";
@@ -2061,7 +2192,7 @@ function renderRooms(h){
   const wholeBtn = avail.length >= 2
     ? `<button type="button" class="btn-sm btn-2" id="dAskWhole">View whole property</button>`
     : "";
-  $("dRooms").innerHTML = `<h3>Rooms</h3>${rows}${wholeBtn}`;
+  $("dRooms").innerHTML = `<h3>Rooms ${rooms.length > 1 ? `&middot; ${avail.length} of ${rooms.length} available` : ""}</h3>${rows}${wholeBtn}`;
 
   $("dRooms").querySelectorAll("[data-room]").forEach(btn => {
     btn.onclick = () => {
@@ -2105,7 +2236,7 @@ async function sendEnquiry(){
   sendBtn.textContent = "Send my details";
 
   if(!result.ok && result.configured){
-    toast("That didn't send — please try again, or just ring us on 020 7946 0000.");
+    toast(`That didn't send — please try again, or just ring us on ${CONTACT_PHONE_DISPLAY}.`);
     return;
   }
 
@@ -2115,7 +2246,7 @@ async function sendEnquiry(){
     <h4>Thanks ${esc(name)}, that's with us</h4>
     <p>The landlord will be in touch about
     ${esc(whatTheyAsked)} at ${esc(current.addr.split(",")[0])} to arrange a viewing.
-    If you'd rather not wait, call us on 020 7946 0000.</p>
+    If you'd rather not wait, call us on ${CONTACT_PHONE_DISPLAY}.</p>
   </div>`;
 }
 
@@ -2161,6 +2292,48 @@ whereEl.addEventListener("input", () => { clearTimeout(searchDebounce); searchDe
 $("savedBtn").onclick = () => { savedChip.click(); savedChip.scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block:"center"}); };
 
 $("savedN").textContent = saved.length;
+updateCompareVisibility();
+
+/* ---------------- compare ---------------- */
+const compareDlg = $("compareDialog");
+function renderCompare(){
+  const items = saved.map(id => HOMES.find(h => String(h.id) === id)).filter(Boolean);
+  if(!items.length){
+    $("cmpGrid").innerHTML = `<p class="cmp-empty">Nothing saved yet — tap the heart on a place you like to add it here.</p>`;
+    return;
+  }
+  $("cmpGrid").innerHTML = items.map(h => {
+    const cheapest = weeklyAllIn(h);
+    const totalRooms = (h.rooms || []).length;
+    const avail = availableRooms(h).length;
+    const feats = (h.features || []).filter(f => FEATURE_LABELS[f]);
+    return `<div class="cmp-card">
+      <div class="pic">${pic(h)}</div>
+      <div class="cmp-body">
+        <h4>${esc(h.title)}</h4>
+        <div class="addr">${esc(h.addr)}</div>
+        <div class="cmp-row"><span>Price</span><span>${cheapest != null ? "from " + gbp(cheapest) + "/wk" : "Nothing available"}</span></div>
+        <div class="cmp-row"><span>Rooms</span><span>${totalRooms ? `${avail} of ${totalRooms} available` : "—"}</span></div>
+        <div class="cmp-row"><span>Checked</span><span>${confirmedLine(h)}</span></div>
+        ${feats.length ? `<div class="cmp-feat">${feats.map(f => `<span class="tag">${FEATURE_LABELS[f].label}</span>`).join("")}</div>` : ""}
+        <div class="cmp-actions">
+          <button type="button" class="btn-sm" data-view="${h.id}">View</button>
+          <button type="button" class="btn-sm btn-2" data-remove="${h.id}">Remove</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+
+  $("cmpGrid").querySelectorAll("[data-view]").forEach(b => {
+    b.onclick = () => { compareDlg.close(); openDetail(HOMES.find(h => String(h.id) === b.dataset.view)); };
+  });
+  $("cmpGrid").querySelectorAll("[data-remove]").forEach(b => {
+    b.onclick = () => { toggleSave(b.dataset.remove); renderCompare(); };
+  });
+}
+$("compareBtn").onclick = () => { renderCompare(); compareDlg.showModal(); };
+$("cmpClose").onclick = () => compareDlg.close();
+compareDlg.addEventListener("click", e => { if(e.target === compareDlg) compareDlg.close(); });
 
 /* scroll reveal + sticky header */
 const io = new IntersectionObserver(es => {
