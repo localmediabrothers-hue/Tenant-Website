@@ -556,14 +556,15 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 .prov-features label{display:flex;align-items:center;gap:8px;font-weight:500;font-size:15px;padding:8px 10px;border:2px solid var(--line);border-radius:8px;cursor:pointer}
 .prov-features input{width:17px;height:17px;flex:none}
 .prov-photo-preview{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-.prov-photo-item{width:84px}
+.prov-photo-item{width:84px;position:relative}
 .prov-photo-item img{width:84px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
-.prov-photo-label{width:100%;margin-top:5px;padding:5px 6px;border:2px solid var(--line);border-radius:6px;font-size:12px;box-sizing:border-box}
+.prov-photo-remove{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,.65);color:#fff;font-size:14px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+.prov-photo-label{width:100%;margin-top:5px;padding:5px 6px;border:2px solid var(--line);border-radius:6px;font-size:12px;box-sizing:border-box;background:var(--surface);color:var(--ink)}
 .prov-room{border:2px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
 .prov-room h4{font-size:15px;font-weight:700;margin-bottom:10px}
 .prov-room .prov-room-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .prov-room label{display:block;font-size:13.5px;font-weight:600;margin-bottom:4px;color:var(--muted)}
-.prov-room input[type=number],.prov-room select{width:100%;padding:9px 10px;border:2px solid var(--line);border-radius:7px;font-size:15px}
+.prov-room input[type=number],.prov-room select{width:100%;padding:9px 10px;border:2px solid var(--line);border-radius:7px;font-size:15px;background:var(--surface);color:var(--ink)}
 .prov-room .prov-room-check{display:flex;align-items:center;gap:7px;font-size:14.5px;font-weight:600;color:var(--ink);margin-top:10px}
 .prov-room .prov-room-check input{width:16px;height:16px}
 
@@ -2113,10 +2114,7 @@ $("provContinue").onclick = () => {
   $("provStepDetails").hidden = false;
 };
 
-$("provPhotos").onchange = () => {
-  providerPhotos = [...$("provPhotos").files].slice(0, 12);
-  if($("provPhotos").files.length > 12) toast("Only the first 12 photos were kept.");
-  providerPhotoLabels = providerPhotos.map(() => "");
+function renderPhotoPreview(){
   $("provPhotoPreview").innerHTML = "";
   providerPhotos.forEach((file, i) => {
     const wrap = document.createElement("div");
@@ -2124,15 +2122,42 @@ $("provPhotos").onchange = () => {
     const img = document.createElement("img");
     img.src = URL.createObjectURL(file);
     img.alt = "";
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "prov-photo-remove";
+    remove.setAttribute("aria-label", "Remove this photo");
+    remove.textContent = "×";
+    remove.onclick = () => {
+      providerPhotos.splice(i, 1);
+      providerPhotoLabels.splice(i, 1);
+      renderPhotoPreview();
+    };
     const label = document.createElement("input");
     label.type = "text";
     label.placeholder = "e.g. Room 1, Kitchen";
     label.className = "prov-photo-label";
+    label.value = providerPhotoLabels[i] || "";
     label.oninput = () => { providerPhotoLabels[i] = label.value.trim(); };
     wrap.appendChild(img);
+    wrap.appendChild(remove);
     wrap.appendChild(label);
     $("provPhotoPreview").appendChild(wrap);
   });
+}
+
+$("provPhotos").onchange = () => {
+  // Added onto what's already picked, not replacing it - on a lot of phones
+  // tapping "add photo" only ever hands back one file per tap, and this
+  // input's .files is replaced fresh every time, so always overwriting
+  // providerPhotos from it meant every photo but the last got lost.
+  const picked = [...$("provPhotos").files];
+  for(const file of picked){
+    if(providerPhotos.length >= 12){ toast("That's 12 photos — the most this form takes."); break; }
+    providerPhotos.push(file);
+    providerPhotoLabels.push("");
+  }
+  $("provPhotos").value = ""; // lets the same file be picked again, and starts the next tap clean
+  renderPhotoPreview();
 };
 
 $("provSubmit").onclick = async () => {
