@@ -511,7 +511,7 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 .d-x:hover{transform:rotate(90deg)}
 .d-body{padding:26px 28px 28px;display:grid;gap:20px;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
 .d-body > *{min-width:0}
-.d-body h2{font-size:27px;font-weight:800}
+.d-body h2{font-size:27px;font-weight:800;padding-right:50px}
 .d-head p{margin:6px 0 0;color:var(--muted);font-size:16.5px}
 
 #compareDialog[open]{max-width:960px}
@@ -2044,6 +2044,51 @@ function updateCompareVisibility(){
   btn.hidden = saved.length < 2;
 }
 
+/* ---------------- dialogs: lock the page behind them ----------------
+   showModal() stops clicks reaching the page behind a dialog, but on iOS
+   Safari it does NOT stop a finger-drag from scrolling the page underneath
+   at the same time as the dialog's own content scrolls - the background
+   content (the next section down, photos, everything) visibly shifts
+   behind the popup while you're scrolling inside it. Pinning the body in
+   place with position:fixed while any dialog is open, and restoring the
+   exact scroll position when it closes, is the standard fix for that.
+
+   Restoring that position is its own fight, though: when a <dialog> closes,
+   the browser moves focus back to whatever triggered it (here, that's a
+   card several screens down the results grid) and scrolls it into view -
+   and because this page has `scroll-behavior: smooth`, that native scroll
+   animates over several hundred ms, landing wherever that card happens to
+   sit rather than back where the page actually was. Switching scroll
+   behaviour to instant for the restore, and doing it twice (now, and again
+   next frame once the browser's own focus-restoration scroll has had its
+   turn), is what actually wins that race. */
+if("scrollRestoration" in history) history.scrollRestoration = "manual";
+
+let scrollLockY = 0, scrollLockCount = 0;
+function lockBodyScroll(){
+  if(scrollLockCount++ > 0) return;
+  scrollLockY = window.scrollY;
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${scrollLockY}px`;
+  document.body.style.left = "0";
+  document.body.style.right = "0";
+}
+function unlockBodyScroll(){
+  if(scrollLockCount === 0 || --scrollLockCount > 0) return;
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.left = "";
+  document.body.style.right = "";
+  const html = document.documentElement;
+  const prevBehavior = html.style.scrollBehavior;
+  html.style.scrollBehavior = "auto";
+  window.scrollTo(0, scrollLockY);
+  requestAnimationFrame(() => {
+    window.scrollTo(0, scrollLockY);
+    html.style.scrollBehavior = prevBehavior;
+  });
+}
+
 /* ---------------- detail + calculator ---------------- */
 const dlg = $("detail");
 let current = null, animFrom = 0, lastTotal = 0, picIndex = 0, moneyRAF = null;
@@ -2155,6 +2200,7 @@ function openDetail(h, opts){
   renderRooms(h);
   resetEnquiry();
   drawCalc();
+  lockBodyScroll();
   dlg.showModal();
   /* The pop-up's content scrolls, and nothing reset that scroll position -
      so reopening it (even for a different listing) after scrolling down
@@ -2183,7 +2229,21 @@ function openDetail(h, opts){
 /* The one place that actually closes the popup, so the URL always ends up
    consistent with what's on screen — a raw dlg.close() would leave a stale
    #home-… in the address bar. */
+/* Closing a <dialog> normally moves focus back to whatever opened it - here
+   that's the card's "hit" button, often several screens down the results
+   grid - and the browser scrolls that back into view as part of restoring
+   focus to it. Per spec that restoration only happens if focus is still
+   inside the dialog at the moment it closes, so blurring first stops it
+   from happening at all; fighting the resulting scroll afterwards doesn't
+   work, since the browser's own scroll-into-view animation isn't something
+   later code can interrupt once it's started. */
+function blurDialogFocus(dialogEl){
+  const ae = document.activeElement;
+  if(ae && dialogEl.contains(ae)) ae.blur();
+}
+
 function closeDetail(){
+  blurDialogFocus(dlg);
   if(pushedForOpen){
     pushedForOpen = false;
     history.back();               // triggers popstate, which closes the dialog
@@ -2203,7 +2263,7 @@ function openFromHash(){
 }
 
 window.addEventListener("popstate", () => {
-  if(dlg.open){ pushedForOpen = false; dlg.close(); }
+  if(dlg.open){ pushedForOpen = false; blurDialogFocus(dlg); dlg.close(); }
 });
 
 $("dClose").onclick = () => closeDetail();
@@ -2320,9 +2380,14 @@ async function sendEnquiry(){
 
 $("eqSend").onclick = sendEnquiry;
 dlg.addEventListener("click", e => { if(e.target === dlg) closeDetail(); });
+/* Escape fires "cancel" before the dialog actually closes, which is the
+   one chance to blur before the browser's own focus-restoration step runs
+   - same reasoning as blurDialogFocus() above. */
+dlg.addEventListener("cancel", () => blurDialogFocus(dlg));
 /* Escape closes the dialog natively without going through closeDetail() —
    this cleans up the URL afterwards so it doesn't get left stale. */
 dlg.addEventListener("close", () => {
+  unlockBodyScroll();
   if(pushedForOpen){ pushedForOpen = false; history.back(); return; }
   if(openedFromHash){ openedFromHash = false; history.replaceState(null, "", location.pathname + location.search); }
 });
@@ -2393,24 +2458,28 @@ function renderCompare(){
   }).join("");
 
   $("cmpGrid").querySelectorAll("[data-view]").forEach(b => {
-    b.onclick = () => { compareDlg.close(); openDetail(HOMES.find(h => String(h.id) === b.dataset.view)); };
+    b.onclick = () => { blurDialogFocus(compareDlg); compareDlg.close(); openDetail(HOMES.find(h => String(h.id) === b.dataset.view)); };
   });
   $("cmpGrid").querySelectorAll("[data-remove]").forEach(b => {
     b.onclick = () => { toggleSave(b.dataset.remove); renderCompare(); };
   });
 }
-$("compareBtn").onclick = () => { renderCompare(); compareDlg.showModal(); };
-$("cmpClose").onclick = () => compareDlg.close();
-compareDlg.addEventListener("click", e => { if(e.target === compareDlg) compareDlg.close(); });
+$("compareBtn").onclick = () => { renderCompare(); lockBodyScroll(); compareDlg.showModal(); };
+$("cmpClose").onclick = () => { blurDialogFocus(compareDlg); compareDlg.close(); };
+compareDlg.addEventListener("click", e => { if(e.target === compareDlg){ blurDialogFocus(compareDlg); compareDlg.close(); } });
+compareDlg.addEventListener("cancel", () => blurDialogFocus(compareDlg));
+compareDlg.addEventListener("close", unlockBodyScroll);
 
 /* "I'm interested" in the header - the same waiting-list form used lower
    down the page, but reachable as a popup from anywhere, so someone doesn't
    have to scroll back up and browse first before telling us what they
    want. */
 const interestDlg = $("interestDialog");
-$("imInterestedBtn").onclick = () => { mountWaitlist($("interestBox")); interestDlg.showModal(); };
-$("intClose").onclick = () => interestDlg.close();
-interestDlg.addEventListener("click", e => { if(e.target === interestDlg) interestDlg.close(); });
+$("imInterestedBtn").onclick = () => { mountWaitlist($("interestBox")); lockBodyScroll(); interestDlg.showModal(); };
+$("intClose").onclick = () => { blurDialogFocus(interestDlg); interestDlg.close(); };
+interestDlg.addEventListener("click", e => { if(e.target === interestDlg){ blurDialogFocus(interestDlg); interestDlg.close(); } });
+interestDlg.addEventListener("cancel", () => blurDialogFocus(interestDlg));
+interestDlg.addEventListener("close", unlockBodyScroll);
 
 /* scroll reveal + sticky header */
 const io = new IntersectionObserver(es => {
