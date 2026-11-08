@@ -486,26 +486,51 @@ footer{margin-top:64px;border-top:1px solid var(--line);background:var(--surface
 .foot .whatsappus{background:#25D366;color:#fff}
 
 /* ================= dialog ================= */
-/* Styling the bare `dialog` selector - including display:flex - beats the
-   browser's own `dialog:not([open]){display:none}` rule (author CSS always
-   wins over the browser's built-in styles, whatever the specificity), which
-   left the closed popup sitting visible in the page near the footer instead
-   of actually hidden. Scoping every rule to [open] fixes that. */
-dialog[open]{border:1px solid var(--line);border-radius:16px;padding:0;max-width:660px;width:calc(100% - 28px);max-height:min(94vh,900px);background:var(--surface);color:var(--ink);box-shadow:var(--shadow-3);overflow:hidden;display:flex;flex-direction:column}
+/* These popups used to rely on the browser's native <dialog>/showModal()
+   "top layer" behaviour. Tested on a real phone, one in-app browser
+   rendered a popup with no visible background at all - just text floating
+   over the page behind it - pointing to the native modal machinery itself
+   behaving inconsistently across browsers and in-app WebViews, not
+   something fixable by tweaking sizing or scroll-locking around it.
+
+   Rebuilt as a plain fixed-position overlay instead: the oldest, most
+   boring way to build a popup, and the one with the fewest moving parts
+   for a browser to get wrong. <dialog> is kept for its semantics and the
+   aria-labelledby wiring already in place, but it's just a styled box now,
+   opened and closed by toggling a class - not showModal()/close(), and not
+   relying on ::backdrop or the [open] attribute at all. */
+dialog{
+  display:none;
+  position:fixed;
+  inset:0;
+  margin:0;
+  padding:16px;
+  border:0;
+  width:100%;
+  height:100%;
+  max-width:none;
+  max-height:none;
+  background:rgba(10,15,11,.6);
+  z-index:200;
+  align-items:center;
+  justify-content:center;
+  overflow-y:auto;
+}
+dialog.is-open{display:flex;animation:fade .3s ease forwards}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.dlg-card{border:1px solid var(--line);border-radius:16px;max-width:660px;width:100%;max-height:min(94vh,900px);background:var(--surface);color:var(--ink);box-shadow:var(--shadow-3);overflow:hidden;display:flex;flex-direction:column;flex:none;animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 /* vh is based on the viewport at its largest - toolbar hidden - which on
    iOS Safari is taller than what's actually visible with the address bar
-   showing, so a dialog sized against it can run off the bottom of the
-   screen with no way to reach the rest. dvh tracks the real, current
-   viewport instead. Browsers without dvh support just ignore this line and
-   keep the vh value above, so this is a safe progressive enhancement, not
-   a replacement. */
+   showing, so a card sized against it can run off the bottom of the screen
+   with no way to reach the rest. dvh tracks the real, current viewport
+   instead. Browsers without dvh support just ignore this line and keep the
+   vh value above, so this is a safe progressive enhancement, not a
+   replacement. */
 @supports (height: 100dvh){
-  dialog[open]{max-height:min(94dvh,900px)}
+  .dlg-card{max-height:min(94dvh,900px)}
 }
-dialog::backdrop{background:rgba(10,15,11,.6);opacity:0;animation:fade .3s ease forwards}
-@keyframes fade{to{opacity:1}}
-dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 @keyframes pop{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
+#compareDialog .dlg-card{max-width:960px}
 .d-pic{height:clamp(220px,46vh,420px);flex:none;background:var(--sky);position:relative}
 .d-pic svg,.d-pic img{width:100%;height:100%;display:block;object-fit:cover}
 .pic-nav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;
@@ -524,7 +549,6 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 .d-body h2{font-size:27px;font-weight:800;padding-right:50px}
 .d-head p{margin:6px 0 0;color:var(--muted);font-size:16.5px}
 
-#compareDialog[open]{max-width:960px}
 .cmp-grid{display:grid;gap:16px}
 @media(min-width:700px){.cmp-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
 .cmp-card{border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
@@ -889,7 +913,8 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
   </div>
 </footer>
 
-<dialog id="detail" aria-labelledby="dTitle">
+<dialog id="detail" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+ <div class="dlg-card">
   <div class="d-pic" id="dPic"></div>
   <button class="d-x" type="button" id="dClose" aria-label="Close">&times;</button>
   <div class="d-body">
@@ -966,9 +991,11 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
       <button class="btn btn-2" type="button" id="dSave">Save it</button>
     </div>
   </div>
+ </div>
 </dialog>
 
-<dialog id="compareDialog" aria-labelledby="cmpTitle">
+<dialog id="compareDialog" role="dialog" aria-modal="true" aria-labelledby="cmpTitle">
+ <div class="dlg-card">
   <button class="d-x" type="button" id="cmpClose" aria-label="Close">&times;</button>
   <div class="d-body">
     <div class="d-head">
@@ -977,9 +1004,11 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
     </div>
     <div id="cmpGrid" class="cmp-grid"></div>
   </div>
+ </div>
 </dialog>
 
-<dialog id="interestDialog" aria-labelledby="intTitle">
+<dialog id="interestDialog" role="dialog" aria-modal="true" aria-labelledby="intTitle">
+ <div class="dlg-card">
   <button class="d-x" type="button" id="intClose" aria-label="Close">&times;</button>
   <div class="d-body">
     <div class="d-head">
@@ -988,6 +1017,7 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
     </div>
     <div id="interestBox"></div>
   </div>
+ </div>
 </dialog>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
@@ -2041,7 +2071,7 @@ function toggleSave(id){
   $("savedN").textContent = saved.length;
   updateCompareVisibility();
   toast(on ? "Removed from your saved places" : "Saved. It'll be here when you come back.");
-  if(dlg.open && current && String(current.id) === id) $("dSave").textContent = on ? "Save it" : "Saved";
+  if(isDialogOpen(dlg) && current && String(current.id) === id) $("dSave").textContent = on ? "Save it" : "Saved";
   render();
 }
 
@@ -2054,18 +2084,31 @@ function updateCompareVisibility(){
   btn.hidden = saved.length < 2;
 }
 
-/* ---------------- dialogs: lock the page behind them ----------------
-   showModal() stops clicks reaching the page behind a dialog, but on iOS
-   Safari it does NOT stop a finger-drag from scrolling the page underneath
-   at the same time as the dialog's own content scrolls.
+/* ---------------- dialogs ----------------
+   Opened and closed by toggling the .is-open class, not showModal()/close()
+   - see the big comment above the "dialog" CSS rules for why. Each of the
+   three popups (#detail, #compareDialog, #interestDialog) is opened with
+   openDialogEl() and closed with closeDialogEl(); #detail additionally
+   wraps these in openDetail()/closeDetail() for its shareable-URL and
+   phone-back-button behaviour. */
+function isDialogOpen(dlg){ return dlg.classList.contains("is-open"); }
+function openDialogEl(dlg){
+  lockBodyScroll();
+  dlg.classList.add("is-open");
+}
+function closeDialogEl(dlg){
+  if(!isDialogOpen(dlg)) return;
+  dlg.classList.remove("is-open");
+  unlockBodyScroll();
+}
 
-   An earlier version of this pinned the body in place with
-   position:fixed + a negative top offset (the usual fix for this on most
-   sites), but on real iOS Safari that visibly dragged the dialog itself
-   off-screen along with the page behind it - the opposite of what it was
-   meant to do. Plain overflow:hidden on the scrolling root is a smaller,
-   safer change: it blocks the background from scrolling without moving
-   anything, so there's no position to carefully restore afterwards either. */
+/* Blocks the background from scrolling while any dialog is open. A plain
+   overflow:hidden toggle rather than the position:fixed-plus-negative-top
+   trick some sites use - that trick visibly dragged the dialog itself
+   off-screen along with the page on at least one real browser this was
+   tested on, which is a worse bug than the one it was meant to fix.
+   overflow:hidden doesn't move anything, so there's no scroll position to
+   carefully restore afterwards either. */
 let scrollLockCount = 0;
 function lockBodyScroll(){
   if(scrollLockCount++ > 0) return;
@@ -2077,6 +2120,15 @@ function unlockBodyScroll(){
   document.documentElement.style.overflow = "";
   document.body.style.overflow = "";
 }
+
+/* Escape closes whichever dialog is open - the one thing native <dialog>
+   gave us for free that a plain div doesn't, so it needs doing by hand. */
+document.addEventListener("keydown", e => {
+  if(e.key !== "Escape") return;
+  if(isDialogOpen(dlg)) closeDetail();
+  else if(isDialogOpen(compareDlg)) closeDialogEl(compareDlg);
+  else if(isDialogOpen(interestDlg)) closeDialogEl(interestDlg);
+});
 
 /* ---------------- detail + calculator ---------------- */
 const dlg = $("detail");
@@ -2167,10 +2219,9 @@ let pushedForOpen = false, openedFromHash = false;
 
 function openDetail(h, opts){
   /* Tapping a property twice fast (easy on a slower connection) called this
-     twice before the first showModal() finished, and showModal() throws if
-     the dialog is already open — closing first makes a repeat tap just
-     redraw the same popup instead of crashing mid-open. */
-  if(dlg.open) dlg.close();
+     twice before the first open finished - closing first makes a repeat
+     tap just redraw the same popup instead of locking scroll twice. */
+  if(isDialogOpen(dlg)) closeDialogEl(dlg);
   current = h; animFrom = 0; picIndex = 0;
   renderPic();
   $("dTitle").textContent = h.title;
@@ -2189,16 +2240,15 @@ function openDetail(h, opts){
   renderRooms(h);
   resetEnquiry();
   drawCalc();
-  lockBodyScroll();
-  dlg.showModal();
+  openDialogEl(dlg);
   /* The pop-up's content scrolls, and nothing reset that scroll position -
      so reopening it (even for a different listing) after scrolling down
      once left the facts list, and everything above the current scroll
      position, effectively hidden until you noticed you could scroll up.
-     This has to run after every innerHTML update above and after
-     showModal(): setting it any earlier let the browser's scroll anchoring
-     quietly pull it away from 0 again once that content changed the
-     scrollable area's height. */
+     This has to run after every innerHTML update above and after the
+     dialog becomes visible: setting it any earlier let the browser's
+     scroll anchoring quietly pull it away from 0 again once that content
+     changed the scrollable area's height. */
   const dBody = dlg.querySelector(".d-body");
   if(dBody){
     dBody.scrollTop = 0;
@@ -2216,30 +2266,16 @@ function openDetail(h, opts){
 }
 
 /* The one place that actually closes the popup, so the URL always ends up
-   consistent with what's on screen — a raw dlg.close() would leave a stale
-   #home-… in the address bar. */
-/* Closing a <dialog> normally moves focus back to whatever opened it - here
-   that's the card's "hit" button, often several screens down the results
-   grid - and the browser scrolls that back into view as part of restoring
-   focus to it. Per spec that restoration only happens if focus is still
-   inside the dialog at the moment it closes, so blurring first stops it
-   from happening at all; fighting the resulting scroll afterwards doesn't
-   work, since the browser's own scroll-into-view animation isn't something
-   later code can interrupt once it's started. */
-function blurDialogFocus(dialogEl){
-  const ae = document.activeElement;
-  if(ae && dialogEl.contains(ae)) ae.blur();
-}
-
+   consistent with what's on screen — closing without going through here
+   would leave a stale #home-… in the address bar. */
 function closeDetail(){
-  blurDialogFocus(dlg);
   if(pushedForOpen){
     pushedForOpen = false;
     history.back();               // triggers popstate, which closes the dialog
   }else{
     if(openedFromHash) history.replaceState(null, "", location.pathname + location.search);
     openedFromHash = false;
-    dlg.close();
+    closeDialogEl(dlg);
   }
 }
 
@@ -2252,7 +2288,7 @@ function openFromHash(){
 }
 
 window.addEventListener("popstate", () => {
-  if(dlg.open){ pushedForOpen = false; blurDialogFocus(dlg); dlg.close(); }
+  if(isDialogOpen(dlg)){ pushedForOpen = false; closeDialogEl(dlg); }
 });
 
 $("dClose").onclick = () => closeDetail();
@@ -2369,17 +2405,6 @@ async function sendEnquiry(){
 
 $("eqSend").onclick = sendEnquiry;
 dlg.addEventListener("click", e => { if(e.target === dlg) closeDetail(); });
-/* Escape fires "cancel" before the dialog actually closes, which is the
-   one chance to blur before the browser's own focus-restoration step runs
-   - same reasoning as blurDialogFocus() above. */
-dlg.addEventListener("cancel", () => blurDialogFocus(dlg));
-/* Escape closes the dialog natively without going through closeDetail() —
-   this cleans up the URL afterwards so it doesn't get left stale. */
-dlg.addEventListener("close", () => {
-  unlockBodyScroll();
-  if(pushedForOpen){ pushedForOpen = false; history.back(); return; }
-  if(openedFromHash){ openedFromHash = false; history.replaceState(null, "", location.pathname + location.search); }
-});
 
 let benefitDebounce;
 benefitEl.addEventListener("input", () => { clearTimeout(benefitDebounce); benefitDebounce = setTimeout(renderFit, 160); });
@@ -2447,28 +2472,24 @@ function renderCompare(){
   }).join("");
 
   $("cmpGrid").querySelectorAll("[data-view]").forEach(b => {
-    b.onclick = () => { blurDialogFocus(compareDlg); compareDlg.close(); openDetail(HOMES.find(h => String(h.id) === b.dataset.view)); };
+    b.onclick = () => { closeDialogEl(compareDlg); openDetail(HOMES.find(h => String(h.id) === b.dataset.view)); };
   });
   $("cmpGrid").querySelectorAll("[data-remove]").forEach(b => {
     b.onclick = () => { toggleSave(b.dataset.remove); renderCompare(); };
   });
 }
-$("compareBtn").onclick = () => { renderCompare(); lockBodyScroll(); compareDlg.showModal(); };
-$("cmpClose").onclick = () => { blurDialogFocus(compareDlg); compareDlg.close(); };
-compareDlg.addEventListener("click", e => { if(e.target === compareDlg){ blurDialogFocus(compareDlg); compareDlg.close(); } });
-compareDlg.addEventListener("cancel", () => blurDialogFocus(compareDlg));
-compareDlg.addEventListener("close", unlockBodyScroll);
+$("compareBtn").onclick = () => { renderCompare(); openDialogEl(compareDlg); };
+$("cmpClose").onclick = () => closeDialogEl(compareDlg);
+compareDlg.addEventListener("click", e => { if(e.target === compareDlg) closeDialogEl(compareDlg); });
 
 /* "I'm interested" in the header - the same waiting-list form used lower
    down the page, but reachable as a popup from anywhere, so someone doesn't
    have to scroll back up and browse first before telling us what they
    want. */
 const interestDlg = $("interestDialog");
-$("imInterestedBtn").onclick = () => { mountWaitlist($("interestBox")); lockBodyScroll(); interestDlg.showModal(); };
-$("intClose").onclick = () => { blurDialogFocus(interestDlg); interestDlg.close(); };
-interestDlg.addEventListener("click", e => { if(e.target === interestDlg){ blurDialogFocus(interestDlg); interestDlg.close(); } });
-interestDlg.addEventListener("cancel", () => blurDialogFocus(interestDlg));
-interestDlg.addEventListener("close", unlockBodyScroll);
+$("imInterestedBtn").onclick = () => { mountWaitlist($("interestBox")); openDialogEl(interestDlg); };
+$("intClose").onclick = () => closeDialogEl(interestDlg);
+interestDlg.addEventListener("click", e => { if(e.target === interestDlg) closeDialogEl(interestDlg); });
 
 /* scroll reveal + sticky header */
 const io = new IntersectionObserver(es => {
