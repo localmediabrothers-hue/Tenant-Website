@@ -509,6 +509,21 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 .d-facts span:first-child{color:var(--muted)}
 .d-facts span:last-child{font-weight:600;text-align:right}
 .d-body>.blurb{margin:0;color:var(--muted);font-size:16.5px}
+
+.d-rooms{display:grid;gap:10px}
+.d-rooms h3{font-family:var(--f-display);font-size:18px;font-weight:700}
+.room-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border:1px solid var(--line-soft);border-radius:10px;padding:13px 15px}
+.room-row.taken{opacity:.55}
+.room-info b{display:block;font-size:16px}
+.room-info span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+.room-price{font-weight:700;font-size:16px;white-space:nowrap}
+.room-row .btn-sm{padding:9px 16px;font-size:14.5px;border-radius:8px;background:var(--accent);color:var(--surface);border:0;font-weight:700;cursor:pointer;white-space:nowrap}
+.room-row .btn-sm.btn-2{background:var(--surface-2);color:var(--ink)}
+.room-taken-label{font-size:14px;font-weight:600;color:var(--muted);white-space:nowrap}
+.d-rooms-empty{border:1px dashed var(--line);border-radius:10px;padding:16px;color:var(--muted);text-align:center}
+.d-features{display:flex;gap:7px;flex-wrap:wrap}
+.d-features .tag{background:var(--surface-2);color:var(--muted)}
+
 .enquire{border:2px solid var(--accent);border-radius:14px;padding:20px;background:var(--accent-soft)}
 .enquire h4{font-family:var(--f-display);font-size:19px;font-weight:700;color:var(--accent)}
 .eq-lead{margin:6px 0 16px;font-size:15.5px;color:var(--muted)}
@@ -752,7 +767,7 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
       <p id="dAddr"></p>
     </div>
 
-    <div class="calc">
+    <div class="calc" id="calcBox">
       <h3>What you'll actually pay</h3>
       <p class="sub" id="cSub">Rent, service charge and council tax, all in.</p>
       <div class="total"><span class="big" id="cBig">£0</span><span class="per" id="cPer">a week &middot; £0 a month</span></div>
@@ -777,10 +792,13 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
     </div>
 
     <div class="d-facts" id="dFacts"></div>
+    <div class="d-features" id="dFeatures"></div>
     <p class="blurb" id="dBlurb"></p>
 
+    <div class="d-rooms" id="dRooms"></div>
+
     <div class="enquire" id="enquire" hidden>
-      <h4>Ask to view this</h4>
+      <h4 id="eqHeading">Ask to view this</h4>
       <p class="eq-lead">Leave your number and we'll ring you back. Nothing to pay, and no obligation.</p>
       <div class="eq-row">
         <label for="eqName">Your name</label>
@@ -808,7 +826,6 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
       <p class="eq-note">We pass this to the landlord of this property and nobody else.</p>
     </div>
     <div class="d-actions">
-      <button class="btn" type="button" id="dAsk">Ask to view this</button>
       <button class="btn btn-2" type="button" id="dSave">Save it</button>
     </div>
   </div>
@@ -872,11 +889,50 @@ const DEMO_HOMES = [
     blurb:"Ground floor of a converted house with its own front door and a patio. Wet room fitted last year." }
 ];
 
+/* Demo listings pre-date the room model — every real property now has one or
+   more rooms underneath it, each with its own price and availability, so
+   each demo listing gets a single room synthesised from its old price. A
+   couple also pick up a fixed feature or two from their old free-text tags,
+   just so the room/feature UI has something to show in ?demo=1 mode. */
+DEMO_HOMES.forEach(h => {
+  h.rooms = [{
+    id: "demo-" + h.id, label: "", ensuite: false,
+    room_type: (h.size || 1) <= 1 ? "single" : "double",
+    size_sqm: null, weekly_service_charge: h.service, available: true
+  }];
+  h.features = [];
+  if(h.tags.some(t => t[0] === "access")) h.features.push("step_free_access");
+  if(h.tags.some(t => t[1] === "Garden")) h.features.push("garden");
+  if(h.tags.some(t => t[1] === "Furnished")) h.features.push("furnished");
+});
+
 /* Demo listings only ever show if you explicitly ask for them (?demo=1),
    e.g. to show the site off. Everyone else sees a loading state, then either
    real listings or an honest "nothing available right now" — never invented
    homes standing in for real ones. */
 const DEMO_MODE = new URLSearchParams(location.search).get("demo") === "1";
+
+/* Fixed list of property features - matches the tick-list in the provider
+   portal exactly, so a value picked there always has a label to show here. */
+const FEATURE_LABELS = {
+  parking: "Free parking", pets_allowed: "Pets allowed", garden: "Garden",
+  step_free_access: "Step-free access", furnished: "Furnished",
+  wifi_included: "Wifi included", washing_machine: "Washing machine",
+  bike_storage: "Bike storage"
+};
+
+/* A property's rooms, cheapest-priced first. "Available" rooms are what a
+   tenant can actually ask to view - a room marked unavailable still shows,
+   so the listing reads honestly, but can't be enquired about. */
+const availableRooms = h => (h.rooms || []).filter(r => r.available);
+const cheapestWeekly = h => {
+  const avail = availableRooms(h);
+  return avail.length ? Math.min(...avail.map(r => r.weekly_service_charge)) : null;
+};
+function roomLabel(r){
+  if(r.label) return r.label;
+  return `${r.room_type === "single" ? "Single" : "Double"} room${r.ensuite ? " (ensuite)" : ""}`;
+}
 let HOMES = [];
 let homesState = "loading"; // "loading" | "ready" | "empty" | "error"
 
@@ -893,7 +949,7 @@ const SUPABASE_URL = "https://ntiyuoytqsqnbhfzmjma.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_xk9WqdKf9JxvWMHtPc-shA_MA10bK6g";
 const SUPABASE_CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT");
 
-async function submitEnquiryToPortal(h, { name, phone, email, when, benefits }){
+async function submitEnquiryToPortal(h, { name, phone, email, when, benefits, roomId }){
   if(!SUPABASE_CONFIGURED){
     console.warn("[Front Door] Supabase isn't configured yet (see SUPABASE_URL near the top of this file) — this enquiry was not sent anywhere.");
     return { ok:false, configured:false };
@@ -917,6 +973,7 @@ async function submitEnquiryToPortal(h, { name, phone, email, when, benefits }){
       },
       body: JSON.stringify({
         property_id: h.id,
+        room_id: roomId || null,
         tenant_name: name, tenant_phone: phone, tenant_email: email || null, best_time: when,
         claiming_benefits: benefits
       })
@@ -949,34 +1006,49 @@ async function loadLiveProperties(){
     return;
   }
   try{
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/properties?active=eq.true&select=id,type,title,address,area,weekly_service_charge,monthly_rent,blurb,photo_urls,bedrooms,last_confirmed_at,max_stay_note&order=created_at.desc`,
-      { headers:{ apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}` } }
-    );
-    if(!res.ok) throw new Error(`fetch failed: ${res.status}`);
-    const rows = await res.json();
-    HOMES = rows.map(p => ({
+    const [propsRes, roomsRes] = await Promise.all([
+      fetch(
+        `${SUPABASE_URL}/rest/v1/properties?active=eq.true&select=id,type,title,address,area,blurb,photo_urls,features,last_confirmed_at,max_stay_note&order=created_at.desc`,
+        { headers:{ apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}` } }
+      ),
+      fetch(
+        `${SUPABASE_URL}/rest/v1/rooms?select=id,property_id,label,room_type,ensuite,size_sqm,weekly_service_charge,available,sort_order&order=sort_order.asc`,
+        { headers:{ apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}` } }
+      )
+    ]);
+    if(!propsRes.ok) throw new Error(`fetch failed: ${propsRes.status}`);
+    if(!roomsRes.ok) throw new Error(`fetch failed: ${roomsRes.status}`);
+    const rows = await propsRes.json();
+    const allRooms = await roomsRes.json();
+    const roomsByProperty = {};
+    for(const r of allRooms){
+      (roomsByProperty[r.property_id] ||= []).push({
+        id: r.id, label: r.label || "", room_type: r.room_type, ensuite: !!r.ensuite,
+        size_sqm: r.size_sqm, weekly_service_charge: r.weekly_service_charge, available: !!r.available
+      });
+    }
+    // Only properties with at least one room belong on the site at all — a
+    // property that's been added but not yet split into rooms isn't ready
+    // to show a tenant, since it has no price or availability to display.
+    HOMES = rows.filter(p => roomsByProperty[p.id] && roomsByProperty[p.id].length).map(p => ({
       id: p.id,
       _live: true,
       type: p.type || "flat",
       title: p.title,
       addr: p.address,
       area: p.area || "",
-      month: p.monthly_rent || null,
-      service: p.weekly_service_charge,
-      size: p.bedrooms || null,
+      rooms: roomsByProperty[p.id],
+      size: roomsByProperty[p.id].length,
       lastConfirmed: p.last_confirmed_at || null,
       maxStay: p.max_stay_note || "",
       avail: "Available now",
+      features: Array.isArray(p.features) ? p.features : [],
       tags: [["hb","Housing Benefit welcome"],["bills","Bills in the service charge"]],
-      facts: [
-        ...(p.bedrooms ? [["Bedrooms", String(p.bedrooms)]] : []),
-        ["Deposit","None"],["Council tax","Included"],["Available","Now"]
-      ],
+      facts: [["Deposit","None"],["Council tax","Included"],["Available","Now"]],
       blurb: p.blurb || "",
       photos: Array.isArray(p.photo_urls) ? p.photo_urls : []
     }));
-    homesState = rows.length ? "ready" : "empty";
+    homesState = HOMES.length ? "ready" : "empty";
   }catch(e){
     console.error("[Front Door] Couldn't load live listings:", e);
     HOMES = [];
@@ -994,8 +1066,10 @@ const store = {
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 };
 
-/* the only amount the tenant pays each week — rent goes straight from their benefit to the landlord */
-const weeklyAllIn = h => h.service;
+/* the only amount the tenant pays each week — rent goes straight from their
+   benefit to the landlord. Cheapest available room's price when nothing's
+   been picked yet; null when the property has nothing free at all. */
+const weeklyAllIn = h => cheapestWeekly(h);
 
 /* how long ago a listing was last confirmed still genuinely available —
    demo listings don't carry a real date, so they read as checked today */
@@ -1468,7 +1542,10 @@ function matching(){
       if(bedWant === 4){ if(!(h.size >= 4)) return false; }
       else if(h.size !== bedWant) return false;
     }
-    if(priceMax !== null && h.service > priceMax) return false;
+    if(priceMax !== null){
+      const cheapest = weeklyAllIn(h);
+      if(cheapest === null || cheapest > priceMax) return false;
+    }
     return true;
   });
 }
@@ -1529,7 +1606,7 @@ async function refreshMapMarkers(){
     const popupEl = document.createElement("div");
     popupEl.className = "map-popup";
     popupEl.innerHTML = `
-      <div class="mp-price">${weeklyAllIn(h) ? gbp(weeklyAllIn(h)) + " a week" : ""}</div>
+      <div class="mp-price">${weeklyAllIn(h) != null ? "from " + gbp(weeklyAllIn(h)) + " a week" : "Nothing available right now"}</div>
       <div class="mp-title">${esc(h.title)}</div>
       <div class="mp-addr">${esc(h.addr)}</div>
       <button type="button">View this place</button>`;
@@ -1701,7 +1778,9 @@ function render(){
         <div class="addr">${h.title}</div>
         <div class="meta">${h.addr}<br>${h.avail}</div>
         <span class="confirmed"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>${confirmedLine(h)}</span>
-        <div class="allin"><b data-count="${weeklyAllIn(h)}" data-suffix=" a week">£0</b><span>only payment from you</span></div>
+        ${weeklyAllIn(h) != null
+          ? `<div class="allin"><span class="w2" style="margin-right:4px">from</span><b data-count="${weeklyAllIn(h)}" data-suffix=" a week">£0</b><span>only payment from you</span></div>`
+          : `<div class="allin"><b>Nothing available right now</b></div>`}
         <div class="tags">${h.tags.map(t => `<span class="tag ${t[0]}">${t[1]}</span>`).join("")}</div>
       </div>
     </article>`).join("");
@@ -1781,6 +1860,7 @@ function toggleSave(id){
 /* ---------------- detail + calculator ---------------- */
 const dlg = $("detail");
 let current = null, animFrom = 0, lastTotal = 0, picIndex = 0, moneyRAF = null;
+let pendingRoom = null; // the specific room someone's about to ask to view, or null for "view whole property"
 
 /* the main photo in the detail popup, with prev/next when there's more than one */
 function renderPic(){
@@ -1815,7 +1895,9 @@ function countTo(el, to){
 
 function drawCalc(){
   const h = current;
-  const total = h.service;
+  const total = pendingRoom ? pendingRoom.weekly_service_charge : cheapestWeekly(h);
+  $("calcBox").style.display = total == null ? "none" : "";
+  if(total == null) return;
   lastTotal = total;
 
   countTo($("cBig"), total);
@@ -1877,9 +1959,13 @@ function openDetail(h, opts){
   const extraFacts = [["Checked", confirmedLine(h)]];
   if(h.maxStay) extraFacts.push(["Typical stay", h.maxStay]);
   $("dFacts").innerHTML = [...h.facts, ...extraFacts].map(f => `<div><span>${f[0]}</span><span>${f[1]}</span></div>`).join("");
+  $("dFeatures").innerHTML = (h.features || []).filter(f => FEATURE_LABELS[f])
+    .map(f => `<span class="tag">${FEATURE_LABELS[f]}</span>`).join("");
   $("dSave").textContent = saved.includes(String(h.id)) ? "Saved" : "Save it";
   benefitEl.value = benefit ? Math.round(benefit) : "";
   benefitUnit.value = "w";
+  pendingRoom = null;
+  renderRooms(h);
   resetEnquiry();
   drawCalc();
   dlg.showModal();
@@ -1946,6 +2032,60 @@ function resetEnquiry(){
   $("eqSend").onclick = sendEnquiry;
 }
 
+/* Room-by-room breakdown for the property currently open. Each available
+   room gets its own "Ask to view this room" button; "View whole property"
+   only shows up once there are two or more rooms free, since that's the
+   only time "I don't mind which, show me what's there" is a real choice —
+   with one room free, asking about it IS asking about the whole property. */
+function renderRooms(h){
+  const rooms = h.rooms || [];
+  const avail = availableRooms(h);
+  if(!avail.length){
+    $("dRooms").innerHTML = `<div class="d-rooms-empty"><b>Nothing available right now</b><br>Every room here is taken at the moment.</div>`;
+    return;
+  }
+  const rows = rooms.map(r => {
+    const size = r.size_sqm ? ` &middot; ${r.size_sqm}m&sup2;` : "";
+    if(!r.available){
+      return `<div class="room-row taken">
+        <div class="room-info"><b>${esc(roomLabel(r))}</b><span>${r.room_type === "single" ? "Single" : "Double"}${r.ensuite ? ", ensuite" : ""}${size}</span></div>
+        <span class="room-taken-label">Taken</span>
+      </div>`;
+    }
+    return `<div class="room-row">
+      <div class="room-info"><b>${esc(roomLabel(r))}</b><span>${r.room_type === "single" ? "Single" : "Double"}${r.ensuite ? ", ensuite" : ""}${size}</span></div>
+      <div class="room-price">${gbp(r.weekly_service_charge)}/wk</div>
+      <button type="button" class="btn-sm" data-room="${r.id}">Ask to view this room</button>
+    </div>`;
+  }).join("");
+  const wholeBtn = avail.length >= 2
+    ? `<button type="button" class="btn-sm btn-2" id="dAskWhole">View whole property</button>`
+    : "";
+  $("dRooms").innerHTML = `<h3>Rooms</h3>${rows}${wholeBtn}`;
+
+  $("dRooms").querySelectorAll("[data-room]").forEach(btn => {
+    btn.onclick = () => {
+      const room = rooms.find(r => r.id === btn.dataset.room);
+      openRoomAsk(room);
+    };
+  });
+  const wholeEl = $("dAskWhole");
+  if(wholeEl) wholeEl.onclick = () => openRoomAsk(null);
+}
+
+/* Opens the enquiry form for a specific room (or null for "view the whole
+   property and decide on the day") and updates the price shown above it to
+   match whichever was picked. */
+function openRoomAsk(room){
+  pendingRoom = room;
+  $("eqHeading").textContent = room ? `Ask to view ${roomLabel(room).toLowerCase()}` : "Ask to view the whole property";
+  drawCalc();
+  enquireBox.hidden = false;
+  enquireBox.scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block:"nearest"});
+  const n = $("eqName");
+  if(n) setTimeout(() => n.focus(), REDUCED ? 0 : 320);
+}
+
 async function sendEnquiry(){
   const name = $("eqName").value.trim();
   const phone = $("eqPhone").value.replace(/[^0-9+]/g, "");
@@ -1960,7 +2100,7 @@ async function sendEnquiry(){
   const sendBtn = $("eqSend");
   sendBtn.disabled = true;
   sendBtn.textContent = "Sending…";
-  const result = await submitEnquiryToPortal(current, { name, phone, email, when, benefits: benefits === "yes" });
+  const result = await submitEnquiryToPortal(current, { name, phone, email, when, benefits: benefits === "yes", roomId: pendingRoom ? pendingRoom.id : null });
   sendBtn.disabled = false;
   sendBtn.textContent = "Send my details";
 
@@ -1969,21 +2109,16 @@ async function sendEnquiry(){
     return;
   }
 
+  const whatTheyAsked = pendingRoom ? roomLabel(pendingRoom).toLowerCase() : "the whole property";
   enquireBox.innerHTML = `<div class="eq-done">
     <div class="tick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></div>
     <h4>Thanks ${esc(name)}, that's with us</h4>
     <p>The landlord will be in touch about
-    ${esc(current.title.toLowerCase())} on ${esc(current.addr.split(",")[0])} to arrange a viewing.
+    ${esc(whatTheyAsked)} at ${esc(current.addr.split(",")[0])} to arrange a viewing.
     If you'd rather not wait, call us on 020 7946 0000.</p>
   </div>`;
 }
 
-$("dAsk").onclick = () => {
-  enquireBox.hidden = false;
-  enquireBox.scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block:"nearest"});
-  const n = $("eqName");
-  if(n) setTimeout(() => n.focus(), REDUCED ? 0 : 320);
-};
 $("eqSend").onclick = sendEnquiry;
 dlg.addEventListener("click", e => { if(e.target === dlg) closeDetail(); });
 /* Escape closes the dialog natively without going through closeDetail() —
