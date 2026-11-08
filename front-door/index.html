@@ -492,6 +492,16 @@ footer{margin-top:64px;border-top:1px solid var(--line);background:var(--surface
    left the closed popup sitting visible in the page near the footer instead
    of actually hidden. Scoping every rule to [open] fixes that. */
 dialog[open]{border:1px solid var(--line);border-radius:16px;padding:0;max-width:660px;width:calc(100% - 28px);max-height:min(94vh,900px);background:var(--surface);color:var(--ink);box-shadow:var(--shadow-3);overflow:hidden;display:flex;flex-direction:column}
+/* vh is based on the viewport at its largest - toolbar hidden - which on
+   iOS Safari is taller than what's actually visible with the address bar
+   showing, so a dialog sized against it can run off the bottom of the
+   screen with no way to reach the rest. dvh tracks the real, current
+   viewport instead. Browsers without dvh support just ignore this line and
+   keep the vh value above, so this is a safe progressive enhancement, not
+   a replacement. */
+@supports (height: 100dvh){
+  dialog[open]{max-height:min(94dvh,900px)}
+}
 dialog::backdrop{background:rgba(10,15,11,.6);opacity:0;animation:fade .3s ease forwards}
 @keyframes fade{to{opacity:1}}
 dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
@@ -509,7 +519,7 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 .d-pic .w{fill:var(--glow)}
 .d-x{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow-2);cursor:pointer;font-size:20px;line-height:1;display:grid;place-items:center;transition:transform .15s ease}
 .d-x:hover{transform:rotate(90deg)}
-.d-body{padding:26px 28px 28px;display:grid;gap:20px;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden}
+.d-body{padding:26px 28px 28px;display:grid;gap:20px;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .d-body > *{min-width:0}
 .d-body h2{font-size:27px;font-weight:800;padding-right:50px}
 .d-head p{margin:6px 0 0;color:var(--muted);font-size:16.5px}
@@ -2047,46 +2057,25 @@ function updateCompareVisibility(){
 /* ---------------- dialogs: lock the page behind them ----------------
    showModal() stops clicks reaching the page behind a dialog, but on iOS
    Safari it does NOT stop a finger-drag from scrolling the page underneath
-   at the same time as the dialog's own content scrolls - the background
-   content (the next section down, photos, everything) visibly shifts
-   behind the popup while you're scrolling inside it. Pinning the body in
-   place with position:fixed while any dialog is open, and restoring the
-   exact scroll position when it closes, is the standard fix for that.
+   at the same time as the dialog's own content scrolls.
 
-   Restoring that position is its own fight, though: when a <dialog> closes,
-   the browser moves focus back to whatever triggered it (here, that's a
-   card several screens down the results grid) and scrolls it into view -
-   and because this page has `scroll-behavior: smooth`, that native scroll
-   animates over several hundred ms, landing wherever that card happens to
-   sit rather than back where the page actually was. Switching scroll
-   behaviour to instant for the restore, and doing it twice (now, and again
-   next frame once the browser's own focus-restoration scroll has had its
-   turn), is what actually wins that race. */
-if("scrollRestoration" in history) history.scrollRestoration = "manual";
-
-let scrollLockY = 0, scrollLockCount = 0;
+   An earlier version of this pinned the body in place with
+   position:fixed + a negative top offset (the usual fix for this on most
+   sites), but on real iOS Safari that visibly dragged the dialog itself
+   off-screen along with the page behind it - the opposite of what it was
+   meant to do. Plain overflow:hidden on the scrolling root is a smaller,
+   safer change: it blocks the background from scrolling without moving
+   anything, so there's no position to carefully restore afterwards either. */
+let scrollLockCount = 0;
 function lockBodyScroll(){
   if(scrollLockCount++ > 0) return;
-  scrollLockY = window.scrollY;
-  document.body.style.position = "fixed";
-  document.body.style.top = `-${scrollLockY}px`;
-  document.body.style.left = "0";
-  document.body.style.right = "0";
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
 }
 function unlockBodyScroll(){
   if(scrollLockCount === 0 || --scrollLockCount > 0) return;
-  document.body.style.position = "";
-  document.body.style.top = "";
-  document.body.style.left = "";
-  document.body.style.right = "";
-  const html = document.documentElement;
-  const prevBehavior = html.style.scrollBehavior;
-  html.style.scrollBehavior = "auto";
-  window.scrollTo(0, scrollLockY);
-  requestAnimationFrame(() => {
-    window.scrollTo(0, scrollLockY);
-    html.style.scrollBehavior = prevBehavior;
-  });
+  document.documentElement.style.overflow = "";
+  document.body.style.overflow = "";
 }
 
 /* ---------------- detail + calculator ---------------- */
