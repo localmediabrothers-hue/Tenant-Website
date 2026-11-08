@@ -2058,8 +2058,8 @@ function renderRoomBlocks(count){
           </select>
         </div>
         <div>
-          <label for="provRoomPrice${i}">Weekly service charge (&pound;)</label>
-          <input id="provRoomPrice${i}" type="number" inputmode="numeric" min="1" max="500">
+          <label for="provRoomPrice${i}">Weekly service charge (&pound;) <span class="eq-opt">(0 if none)</span></label>
+          <input id="provRoomPrice${i}" type="number" inputmode="numeric" min="0" max="500">
         </div>
       </div>
       <label class="prov-room-check"><input id="provRoomEnsuite${i}" type="checkbox"> Ensuite</label>
@@ -2136,9 +2136,9 @@ $("provSubmit").onclick = async () => {
     available: $(`provRoomAvailable${i}`).checked
   }));
 
-  const missingPrice = rooms.findIndex(r => r.available && !r.weekly_service_charge);
+  const missingPrice = rooms.findIndex(r => r.available && r.weekly_service_charge === null);
   if(missingPrice !== -1){
-    toast(`Please add a weekly service charge for Room ${missingPrice + 1}, or untick "Available now" if it isn't ready yet.`);
+    toast(`Please add a weekly service charge for Room ${missingPrice + 1} (£0 is fine if there isn't one), or untick "Available now" if it isn't ready yet.`);
     $(`provRoomPrice${missingPrice}`).focus();
     return;
   }
