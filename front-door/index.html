@@ -555,6 +555,8 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 .prov-features{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .prov-features label{display:flex;align-items:center;gap:8px;font-weight:500;font-size:15px;padding:8px 10px;border:2px solid var(--line);border-radius:8px;cursor:pointer}
 .prov-features input{width:17px;height:17px;flex:none}
+.prov-photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.prov-photo-preview img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
 
 .cmp-grid{display:grid;gap:16px}
 @media(min-width:700px){.cmp-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
@@ -1059,6 +1061,11 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
       <div class="eq-row">
         <label>Does your property have any of these?</label>
         <div class="prov-features" id="provFeatures"></div>
+      </div>
+      <div class="eq-row">
+        <label for="provPhotos">Photos of the property/rooms <span class="eq-opt">(up to 12, optional but it helps)</span></label>
+        <input id="provPhotos" type="file" accept="image/*" multiple>
+        <div id="provPhotoPreview" class="prov-photo-preview"></div>
       </div>
       <button class="btn" type="button" id="provSubmit">Submit</button>
     </div>
@@ -1989,12 +1996,16 @@ async function submitWaitlist(){
    the operator still builds the real listing by hand afterwards. */
 const providerDlg = $("providerDialog");
 let providerFeatures = [];
+let providerPhotos = [];
 
 function resetProviderDialog(){
   $("provPhone").value = "";
   $("provRooms").value = "";
   $("provPostcode").value = "";
   providerFeatures = [];
+  providerPhotos = [];
+  $("provPhotos").value = "";
+  $("provPhotoPreview").innerHTML = "";
   $("provFeatures").innerHTML = Object.entries(FEATURE_LABELS).map(([value, f]) =>
     `<label><input type="checkbox" value="${value}"> ${f.label}</label>`
   ).join("");
@@ -2024,6 +2035,18 @@ $("provContinue").onclick = () => {
   $("provStepDetails").hidden = false;
 };
 
+$("provPhotos").onchange = () => {
+  providerPhotos = [...$("provPhotos").files].slice(0, 12);
+  if($("provPhotos").files.length > 12) toast("Only the first 12 photos were kept.");
+  $("provPhotoPreview").innerHTML = "";
+  providerPhotos.forEach(file => {
+    const img = document.createElement("img");
+    img.src = URL.createObjectURL(file);
+    img.alt = "";
+    $("provPhotoPreview").appendChild(img);
+  });
+};
+
 $("provSubmit").onclick = async () => {
   const phone = $("provPhone").value.replace(/[^0-9+]/g, "");
   const roomsCount = $("provRooms").value ? Number($("provRooms").value) : null;
@@ -2033,10 +2056,16 @@ $("provSubmit").onclick = async () => {
   btn.disabled = true; btn.textContent = "Sending…";
   try{
     if(!SUPABASE_CONFIGURED) throw new Error("not configured");
+    const formData = new FormData();
+    formData.set("phone", phone);
+    if(roomsCount != null) formData.set("rooms_count", String(roomsCount));
+    formData.set("postcode", postcode);
+    formData.set("features", JSON.stringify(providerFeatures));
+    providerPhotos.forEach(file => formData.append("photos", file));
     const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-provider-listing`, {
       method:"POST",
-      headers:{ apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}`, "Content-Type":"application/json" },
-      body: JSON.stringify({ phone, rooms_count: roomsCount, postcode: postcode || null, features: providerFeatures })
+      headers:{ apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}` },
+      body: formData
     });
     if(!res.ok) throw new Error(`provider listing failed: ${res.status}`);
     $("provStepDetails").hidden = true;
