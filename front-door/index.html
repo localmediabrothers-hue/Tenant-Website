@@ -246,8 +246,6 @@ html{scroll-behavior:smooth}
 .ticker{display:inline-flex;align-items:center;gap:10px;font-size:13.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--glow);margin:0 0 20px;transition:opacity .38s ease,transform .38s ease;text-shadow:0 1px 10px rgba(4,8,5,.7)}
 .ticker.out{opacity:0;transform:translateY(-7px)}
 .ticker::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--glow);flex:none;box-shadow:0 0 0 4px rgba(240,178,60,.25)}
-.moneyline{font-size:19.5px;color:#fff;max-width:46ch;margin:20px 0 0;line-height:1.55;text-shadow:0 1px 12px rgba(4,8,5,.65)}
-.moneyline b{color:var(--glow);font-weight:700}
 
 /* the numbers that matter, right under the fold */
 .moneyband{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:34px 0 0}
@@ -286,11 +284,7 @@ html{scroll-behavior:smooth}
   .hero-content h1{font-size:30px}
   .hero-content p{font-size:16.5px;margin-top:12px}
   .ticker{margin-bottom:14px}
-  .moneyline{font-size:16px;margin-top:14px}
   .search{margin-top:18px;padding:16px}
-  /* the money line below says the same thing more concretely, so on a phone
-     this one is just four lines sitting on top of the scene */
-  .intro-long{display:none}
   .hero-scrim{background:linear-gradient(to top,rgba(6,10,7,.5) 0%,rgba(6,10,7,.2) 42%,rgba(6,10,7,0) 74%)}
   .hero-scrim-top{height:120px;background:linear-gradient(to bottom,rgba(6,10,7,.42) 0%,rgba(6,10,7,0) 100%)}
 }
@@ -690,9 +684,8 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
     <div class="hero-scrim" aria-hidden="true"></div>
     <div class="hero-content wrap">
       <p class="ticker" id="ticker">100% of bills included. No agency fees.</p>
-      <h1 class="reveal">Somewhere to live, with <span class="em">the lights already on</span></h1>
-      <p class="reveal intro-long">Every landlord here accepts Housing Benefit and Universal Credit. No agency fees. And we show you the real weekly cost before you ask.</p>
-      <p class="moneyline reveal">Once your eligibility check clears, your rent is arranged straight from your Housing Benefit — you only ever pay <b>£10&ndash;£30 a week</b>, and that covers your gas, electric, water and wifi too.</p>
+      <h1 class="reveal">A room you <span class="em">can trust</span></h1>
+      <p class="reveal intro-long">Vetted providers, well-maintained homes, no hidden fees — move in today.</p>
 
       <form class="search" id="searchForm">
         <div class="field">
