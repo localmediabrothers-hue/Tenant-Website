@@ -2868,12 +2868,44 @@ gateDlg.addEventListener("click", e => { if(e.target === gateDlg) closeGate(); }
 /* On a phone, the section-nav links double as the only way to reach
    anything past the room listing (see the .mobile-gated CSS) - clicking one
    reveals its target just before the browser's own smooth-scroll runs, so
-   there's something there to scroll to. No-op on desktop, where nothing is
-   gated in the first place. */
+   there's something there to scroll to. It only stays revealed while it's
+   actually the thing on screen, though: once the section has been seen and
+   then scrolls fully out of view (either direction), it's hidden again, and
+   tapping the same nav link is the only way back. Harmless on desktop,
+   where .mobile-gated has no effect in the first place. */
+const gateObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    const el = entry.target;
+    if(entry.isIntersecting){
+      el.dataset.wasSeen = "1";
+    }else if(el.dataset.wasSeen){
+      el.classList.remove("mobile-shown");
+      delete el.dataset.wasSeen;
+      gateObserver.unobserve(el);
+    }
+  });
+});
 document.querySelectorAll(".sectionnav a[href^='#']").forEach(a => {
-  a.addEventListener("click", () => {
+  a.addEventListener("click", e => {
     const target = document.querySelector(a.getAttribute("href"));
-    if(target) target.classList.add("mobile-shown");
+    if(!target) return;
+    const wasHidden = target.classList.contains("mobile-gated") && !target.classList.contains("mobile-shown");
+    if(wasHidden){
+      e.preventDefault();
+      target.classList.add("mobile-shown");
+      gateObserver.observe(target);
+      target.scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block: "start"});
+      // Scrolling there passes straight through the room cards, whose
+      // prices count up from £0 the moment each one comes into view - that
+      // briefly changes their height, which can leave this scroll short of
+      // its actual mark by however much the page grew mid-flight. A couple
+      // of silent, instant corrections once the count-up animations have
+      // had time to finish closes that gap without it being visible.
+      if(!REDUCED){
+        setTimeout(() => target.scrollIntoView({behavior: "auto", block: "start"}), 900);
+        setTimeout(() => target.scrollIntoView({behavior: "auto", block: "start"}), 1300);
+      }
+    }
   });
 });
 // Skip the gate on a shared listing link - someone arriving at a specific
