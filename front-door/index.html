@@ -555,8 +555,10 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 .prov-features{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .prov-features label{display:flex;align-items:center;gap:8px;font-weight:500;font-size:15px;padding:8px 10px;border:2px solid var(--line);border-radius:8px;cursor:pointer}
 .prov-features input{width:17px;height:17px;flex:none}
-.prov-photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-.prov-photo-preview img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.prov-photo-preview{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+.prov-photo-item{width:84px}
+.prov-photo-item img{width:84px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+.prov-photo-label{width:100%;margin-top:5px;padding:5px 6px;border:2px solid var(--line);border-radius:6px;font-size:12px;box-sizing:border-box}
 .prov-room{border:2px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
 .prov-room h4{font-size:15px;font-weight:700;margin-bottom:10px}
 .prov-room .prov-room-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -1063,8 +1065,23 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
           <option value="house">House</option>
           <option value="flat">Flat</option>
           <option value="studio">Studio</option>
-          <option value="room">Room in a shared house</option>
         </select>
+      </div>
+      <div class="eq-row">
+        <label for="provPostcode">What's the postcode?</label>
+        <input id="provPostcode" type="text" autocomplete="postal-code">
+      </div>
+      <div class="eq-row">
+        <label for="provAddress">What's the street name and door number?</label>
+        <input id="provAddress" type="text" autocomplete="address-line1">
+      </div>
+      <div class="eq-row">
+        <label for="provToilets">How many toilets/bathrooms does it have?</label>
+        <input id="provToilets" type="number" inputmode="numeric" min="0" max="20">
+      </div>
+      <div class="eq-row">
+        <label for="provFloors">How many floors does it have?</label>
+        <input id="provFloors" type="number" inputmode="numeric" min="0" max="20">
       </div>
       <div class="eq-row">
         <label for="provRooms">How many rooms does your property have?</label>
@@ -1080,22 +1097,6 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 
       <div id="provRoomsDetail"></div>
 
-      <div class="eq-row">
-        <label for="provPostcode">What's the postcode?</label>
-        <input id="provPostcode" type="text" autocomplete="postal-code">
-      </div>
-      <div class="eq-row">
-        <label for="provToilets">How many toilets/bathrooms does it have?</label>
-        <input id="provToilets" type="number" inputmode="numeric" min="0" max="20">
-      </div>
-      <div class="eq-row">
-        <label for="provFloors">How many floors does it have?</label>
-        <input id="provFloors" type="number" inputmode="numeric" min="0" max="20">
-      </div>
-      <div class="eq-row">
-        <label for="provLivingRooms">How many living rooms does it have?</label>
-        <input id="provLivingRooms" type="number" inputmode="numeric" min="0" max="20">
-      </div>
       <div class="eq-row">
         <label>Does your property have any of these?</label>
         <div class="prov-features" id="provFeatures"></div>
@@ -1185,7 +1186,6 @@ DEMO_HOMES.forEach(h => {
   h.features = [];
   if(h.tags.some(t => t[0] === "access")) h.features.push("step_free_access");
   if(h.tags.some(t => t[1] === "Garden")) h.features.push("garden");
-  if(h.tags.some(t => t[1] === "Furnished")) h.features.push("furnished");
 });
 
 /* Demo listings only ever show if you explicitly ask for them (?demo=1),
@@ -1203,11 +1203,10 @@ const FEATURE_LABELS = {
   pets_allowed: { label: "Pets allowed", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="9" r="2"/><circle cx="9.5" cy="5.5" r="2"/><circle cx="14.5" cy="5.5" r="2"/><circle cx="18.5" cy="9" r="2"/><path d="M12 11c3 0 6 2.2 6 5.2 0 2.1-1.8 3.3-3.8 2.6a5 5 0 0 0-4.4 0C7.8 19.5 6 18.3 6 16.2 6 13.2 9 11 12 11z"/></svg>' },
   garden: { label: "Garden", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22v-7"/><path d="M12 15C6 15 4 10 4 6c5 0 8 2.5 8 7 0-4.5 3-7 8-7 0 4-2 9-8 9z"/></svg>' },
   step_free_access: { label: "Step-free access", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="4" r="2"/><path d="M11 8h3l3 3-1.4 1.4L13.5 10H12l.8 3 3.7 1.5-.8 1.9-4-1.6-1-3.8-1.7 5.6-2-.6 2-7z"/></svg>' },
-  furnished: { label: "Furnished", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 11V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v4a2 2 0 0 1 1 1.7V17h-2v-2H6v2H4v-4.3A2 2 0 0 1 5 11zm2-4v4h10V7H7z"/></svg>' },
-  wifi_included: { label: "Wifi included", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 18.5a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2zM8.3 13.8a5.3 5.3 0 0 1 7.4 0l-1.6 1.6a3 3 0 0 0-4.2 0zM5 10.5a9.4 9.4 0 0 1 14 0l-1.6 1.6a7 7 0 0 0-10.8 0z"/></svg>' },
-  washing_machine: { label: "Washing machine", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm1 2v2h2V5H6zm6.5 2A5.5 5.5 0 1 0 18 12.5 5.5 5.5 0 0 0 12.5 7zm0 2a3.5 3.5 0 1 1-3.5 3.5A3.5 3.5 0 0 1 12.5 9z"/></svg>' },
   bike_storage: { label: "Bike storage", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5.5" cy="17.5" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18.5" cy="17.5" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 17.5 9 10h4l3 7.5M9 10l2-3h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' },
-  communal_area: { label: "Communal area", icon: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="8" cy="8" r="2.6"/><circle cx="16" cy="8" r="2.6"/><path d="M2 19c0-3 2.7-5 6-5s6 2 6 5v1H2zM13.4 14.3c2.6.5 4.6 2.3 4.6 4.7v1h4v-1c0-2.5-2.3-4.3-4.9-4.7a4.6 4.6 0 0 1-3.7 0z"/></svg>' }
+  smokers_allowed: { label: "Smokers allowed", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15h14"/><path d="M19 15h2"/><path d="M16 11c1-1 1-2.5 0-4"/><path d="M18.5 12.5c1.5-1.5 1.5-3.5 0-6"/></svg>' },
+  female_only: { label: "Female only house", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M12 14v7"/><path d="M9 18h6"/></svg>' },
+  male_only: { label: "Male only house", icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="10" cy="14" r="5"/><path d="M14 10l6-6"/><path d="M15 4h5v5"/></svg>' }
 };
 
 /* A property's rooms, cheapest-priced first. "Available" rooms are what a
@@ -2035,6 +2034,7 @@ async function submitWaitlist(){
 const providerDlg = $("providerDialog");
 let providerFeatures = [];
 let providerPhotos = [];
+let providerPhotoLabels = [];
 
 /* One block of the same four questions per room, regenerated whenever the
    room count dropdown changes. Each room's own inputs are read straight
@@ -2073,12 +2073,13 @@ function resetProviderDialog(){
   $("provType").value = "house";
   $("provRooms").value = "1";
   $("provPostcode").value = "";
+  $("provAddress").value = "";
   $("provToilets").value = "";
   $("provFloors").value = "";
-  $("provLivingRooms").value = "";
   renderRoomBlocks(1);
   providerFeatures = [];
   providerPhotos = [];
+  providerPhotoLabels = [];
   $("provPhotos").value = "";
   $("provPhotoPreview").innerHTML = "";
   $("provFeatures").innerHTML = Object.entries(FEATURE_LABELS).map(([value, f]) =>
@@ -2115,12 +2116,22 @@ $("provContinue").onclick = () => {
 $("provPhotos").onchange = () => {
   providerPhotos = [...$("provPhotos").files].slice(0, 12);
   if($("provPhotos").files.length > 12) toast("Only the first 12 photos were kept.");
+  providerPhotoLabels = providerPhotos.map(() => "");
   $("provPhotoPreview").innerHTML = "";
-  providerPhotos.forEach(file => {
+  providerPhotos.forEach((file, i) => {
+    const wrap = document.createElement("div");
+    wrap.className = "prov-photo-item";
     const img = document.createElement("img");
     img.src = URL.createObjectURL(file);
     img.alt = "";
-    $("provPhotoPreview").appendChild(img);
+    const label = document.createElement("input");
+    label.type = "text";
+    label.placeholder = "e.g. Room 1, Kitchen";
+    label.className = "prov-photo-label";
+    label.oninput = () => { providerPhotoLabels[i] = label.value.trim(); };
+    wrap.appendChild(img);
+    wrap.appendChild(label);
+    $("provPhotoPreview").appendChild(wrap);
   });
 };
 
@@ -2153,10 +2164,11 @@ $("provSubmit").onclick = async () => {
     formData.set("rooms", JSON.stringify(rooms));
     formData.set("property_type", $("provType").value);
     formData.set("postcode", postcode);
+    formData.set("street_address", $("provAddress").value.trim());
     formData.set("toilets", $("provToilets").value || "");
     formData.set("floors", $("provFloors").value || "");
-    formData.set("living_rooms", $("provLivingRooms").value || "");
     formData.set("features", JSON.stringify(providerFeatures));
+    formData.set("photo_labels", JSON.stringify(providerPhotoLabels));
     providerPhotos.forEach(file => formData.append("photos", file));
     const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-provider-listing`, {
       method:"POST",
