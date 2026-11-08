@@ -557,6 +557,13 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 .prov-features input{width:17px;height:17px;flex:none}
 .prov-photo-preview{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .prov-photo-preview img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.prov-room{border:2px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.prov-room h4{font-size:15px;font-weight:700;margin-bottom:10px}
+.prov-room .prov-room-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prov-room label{display:block;font-size:13.5px;font-weight:600;margin-bottom:4px;color:var(--muted)}
+.prov-room input[type=number],.prov-room select{width:100%;padding:9px 10px;border:2px solid var(--line);border-radius:7px;font-size:15px}
+.prov-room .prov-room-check{display:flex;align-items:center;gap:7px;font-size:14.5px;font-weight:600;color:var(--ink);margin-top:10px}
+.prov-room .prov-room-check input{width:16px;height:16px}
 
 .cmp-grid{display:grid;gap:16px}
 @media(min-width:700px){.cmp-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
@@ -1051,12 +1058,43 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 
     <div id="provStepDetails" hidden>
       <div class="eq-row">
-        <label for="provRooms">How many rooms does your property have?</label>
-        <input id="provRooms" type="number" inputmode="numeric" min="1" max="20">
+        <label for="provType">What type of property is it?</label>
+        <select id="provType">
+          <option value="house">House</option>
+          <option value="flat">Flat</option>
+          <option value="studio">Studio</option>
+          <option value="room">Room in a shared house</option>
+        </select>
       </div>
+      <div class="eq-row">
+        <label for="provRooms">How many rooms does your property have?</label>
+        <select id="provRooms">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+        </select>
+      </div>
+
+      <div id="provRoomsDetail"></div>
+
       <div class="eq-row">
         <label for="provPostcode">What's the postcode?</label>
         <input id="provPostcode" type="text" autocomplete="postal-code">
+      </div>
+      <div class="eq-row">
+        <label for="provToilets">How many toilets/bathrooms does it have?</label>
+        <input id="provToilets" type="number" inputmode="numeric" min="0" max="20">
+      </div>
+      <div class="eq-row">
+        <label for="provFloors">How many floors does it have?</label>
+        <input id="provFloors" type="number" inputmode="numeric" min="0" max="20">
+      </div>
+      <div class="eq-row">
+        <label for="provLivingRooms">How many living rooms does it have?</label>
+        <input id="provLivingRooms" type="number" inputmode="numeric" min="0" max="20">
       </div>
       <div class="eq-row">
         <label>Does your property have any of these?</label>
@@ -1998,10 +2036,43 @@ const providerDlg = $("providerDialog");
 let providerFeatures = [];
 let providerPhotos = [];
 
+/* One block of the same four questions per room, regenerated whenever the
+   room count dropdown changes. Each room's own inputs are read straight
+   out of the DOM at submit time (by index) rather than kept in a separate
+   array in sync with the dropdown - simpler, and there's never more than
+   six of them. */
+function renderRoomBlocks(count){
+  $("provRoomsDetail").innerHTML = Array.from({length: count}, (_, i) => `
+    <div class="prov-room" data-room="${i}">
+      <h4>Room ${i + 1}</h4>
+      <div class="prov-room-grid">
+        <div>
+          <label for="provRoomSize${i}">Size (m&sup2;)</label>
+          <input id="provRoomSize${i}" type="number" inputmode="numeric" min="1" max="100">
+        </div>
+        <div>
+          <label for="provRoomType${i}">Room type</label>
+          <select id="provRoomType${i}">
+            <option value="double">Double</option>
+            <option value="single">Single</option>
+          </select>
+        </div>
+      </div>
+      <label class="prov-room-check"><input id="provRoomEnsuite${i}" type="checkbox"> Ensuite</label>
+      <label class="prov-room-check"><input id="provRoomAvailable${i}" type="checkbox" checked> Available now</label>
+    </div>`
+  ).join("");
+}
+
 function resetProviderDialog(){
   $("provPhone").value = "";
-  $("provRooms").value = "";
+  $("provType").value = "house";
+  $("provRooms").value = "1";
   $("provPostcode").value = "";
+  $("provToilets").value = "";
+  $("provFloors").value = "";
+  $("provLivingRooms").value = "";
+  renderRoomBlocks(1);
   providerFeatures = [];
   providerPhotos = [];
   $("provPhotos").value = "";
@@ -2020,6 +2091,8 @@ function resetProviderDialog(){
   const btn = $("provSubmit");
   btn.disabled = false; btn.textContent = "Submit";
 }
+
+$("provRooms").onchange = () => renderRoomBlocks(Number($("provRooms").value));
 
 $("providerLink").onclick = () => {
   resetProviderDialog();
@@ -2049,8 +2122,14 @@ $("provPhotos").onchange = () => {
 
 $("provSubmit").onclick = async () => {
   const phone = $("provPhone").value.replace(/[^0-9+]/g, "");
-  const roomsCount = $("provRooms").value ? Number($("provRooms").value) : null;
+  const roomsCount = Number($("provRooms").value);
   const postcode = $("provPostcode").value.trim();
+  const rooms = Array.from({length: roomsCount}, (_, i) => ({
+    size_sqm: $(`provRoomSize${i}`).value ? Number($(`provRoomSize${i}`).value) : null,
+    room_type: $(`provRoomType${i}`).value,
+    ensuite: $(`provRoomEnsuite${i}`).checked,
+    available: $(`provRoomAvailable${i}`).checked
+  }));
 
   const btn = $("provSubmit");
   btn.disabled = true; btn.textContent = "Sending…";
@@ -2058,8 +2137,13 @@ $("provSubmit").onclick = async () => {
     if(!SUPABASE_CONFIGURED) throw new Error("not configured");
     const formData = new FormData();
     formData.set("phone", phone);
-    if(roomsCount != null) formData.set("rooms_count", String(roomsCount));
+    formData.set("rooms_count", String(roomsCount));
+    formData.set("rooms", JSON.stringify(rooms));
+    formData.set("property_type", $("provType").value);
     formData.set("postcode", postcode);
+    formData.set("toilets", $("provToilets").value || "");
+    formData.set("floors", $("provFloors").value || "");
+    formData.set("living_rooms", $("provLivingRooms").value || "");
     formData.set("features", JSON.stringify(providerFeatures));
     providerPhotos.forEach(file => formData.append("photos", file));
     const res = await fetch(`${SUPABASE_URL}/functions/v1/submit-provider-listing`, {
