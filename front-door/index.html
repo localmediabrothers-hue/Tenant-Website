@@ -231,11 +231,11 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .scrollcue svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;display:block}
 @keyframes cue{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,9px)}}
 html{scroll-behavior:smooth}
-#costs,#help,#results,#mapView{scroll-margin-top:96px}
+#costs,#help,#results,#mapView,#living-here,#about,#testimonials,#contact{scroll-margin-top:160px}
 
 .hero-scrim-top{position:absolute;top:0;left:0;right:0;height:170px;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(6,10,7,.5) 0%,rgba(6,10,7,0) 100%)}
 .hero-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to top,rgba(6,10,7,.6) 0%,rgba(6,10,7,.28) 34%,rgba(6,10,7,.05) 62%,rgba(6,10,7,0) 78%)}
-.hero-content{position:relative;z-index:2;width:100%;padding:104px 20px 132px}
+.hero-content{position:relative;z-index:2;width:100%;padding:180px 20px 132px}
 .hero-content h1{color:#fff;font-size:clamp(33px,5.6vw,56px);font-weight:500;max-width:18ch;letter-spacing:-.01em;text-shadow:0 2px 20px rgba(4,8,5,.6),0 1px 3px rgba(4,8,5,.45)}
 .hero-content h1 .em{color:var(--glow);position:relative;white-space:nowrap}
 .hero-content h1 .em::after{content:"";position:absolute;left:0;right:0;bottom:.08em;height:.09em;background:rgba(255,255,255,.55);border-radius:2px;transform:scaleX(0);transform-origin:left;animation:swipe .8s .5s cubic-bezier(.2,.8,.3,1) forwards}
@@ -280,7 +280,7 @@ html{scroll-behavior:smooth}
    ever taking effect. */
 @media(max-width:680px){
   .hero{min-height:74vh}
-  .hero-content{padding:76px 20px 28px}
+  .hero-content{padding:150px 20px 28px}
   .hero-content h1{font-size:30px}
   .hero-content p{font-size:16.5px;margin-top:12px}
   .ticker{margin-bottom:14px}
@@ -436,16 +436,26 @@ html{scroll-behavior:smooth}
 .excard li{margin-bottom:7px}
 .excard strong{color:var(--ink);font-weight:600}
 /* ================= section nav ================= */
-/* A row of jump-links to every major section, sitting just under the fixed
-   header once it's scrolled into view. Deliberately wraps onto more than
-   one line on a narrow screen rather than squeezing every title onto one -
-   a crowded single row of seven labels is harder to read than two tidy
+/* A row of jump-links to every major section, living in the fixed header
+   itself so it's visible straight away at the top of the page rather than
+   only after scrolling past the hero. Deliberately wraps onto more than one
+   line on a narrow screen rather than squeezing every title onto one - a
+   crowded single row of seven labels is harder to read than two tidy
    ones. */
-.sectionnav{position:sticky;top:84px;z-index:30;display:flex;flex-wrap:wrap;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:24px 0 0;box-shadow:var(--shadow-1)}
+.sectionnav{max-width:1100px;width:calc(100% - 40px);margin:0 auto 14px;display:flex;flex-wrap:wrap;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:var(--shadow-1)}
 .sectionnav a{color:var(--ink);text-decoration:none;font-weight:600;font-size:14.5px;padding:7px 13px;border-radius:999px;background:var(--surface-2);transition:background .2s ease,color .2s ease}
 .sectionnav a:hover{background:var(--accent-soft);color:var(--accent)}
 .sectionnav a.sectionnav-contact{margin-left:auto;background:var(--accent);color:var(--on-accent)}
 .sectionnav a.sectionnav-contact:hover{background:var(--accent-hover)}
+/* Wrapping onto several rows reads cleanly on a wide screen, but at phone
+   width it would eat a third of the header's permanently-fixed height - so
+   below 640px this becomes a single scrollable row instead. */
+@media(max-width:640px){
+  .sectionnav{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+  .sectionnav::-webkit-scrollbar{display:none}
+  .sectionnav a{flex:none}
+  .sectionnav a.sectionnav-contact{margin-left:0}
+}
 
 /* ================= about ================= */
 .about{margin:64px 0 0;background:var(--accent-soft);border-radius:14px;padding:36px 32px}
@@ -655,6 +665,15 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
       </a>
     </nav>
   </div>
+  <nav class="sectionnav" aria-label="Jump to a section">
+    <a href="#results">Browse rooms</a>
+    <a href="#help">Move-in steps</a>
+    <a href="#costs">Common questions</a>
+    <a href="#living-here">Living here</a>
+    <a href="#about">Why Front Door</a>
+    <a href="#testimonials">What people say</a>
+    <a href="#contact" class="sectionnav-contact">Contact us</a>
+  </nav>
 </header>
 
 <main id="top">
@@ -663,7 +682,7 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
     <div class="hero-scrim-top" aria-hidden="true"></div>
     <div class="hero-scrim" aria-hidden="true"></div>
     <div class="hero-content wrap">
-      <p class="ticker" id="ticker">Bills included. No agency fees.</p>
+      <p class="ticker" id="ticker">100% of bills included. No agency fees.</p>
       <h1 class="reveal">Somewhere to live, with <span class="em">the lights already on</span></h1>
       <p class="reveal intro-long">Every landlord here accepts Housing Benefit and Universal Credit. No agency fees. And we show you the real weekly cost before you ask.</p>
       <p class="moneyline reveal">Once your eligibility check clears, your rent is arranged straight from your Housing Benefit — you only ever pay <b>£10&ndash;£30 a week</b>, and that covers your gas, electric, water and wifi too.</p>
@@ -686,16 +705,6 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
   </section>
 
   <div class="wrap">
-    <nav class="sectionnav" aria-label="Jump to a section">
-      <a href="#results">Browse rooms</a>
-      <a href="#help">Move-in steps</a>
-      <a href="#costs">Common questions</a>
-      <a href="#living-here">Living here</a>
-      <a href="#about">Why Front Door</a>
-      <a href="#testimonials">What people say</a>
-      <a href="#contact" class="sectionnav-contact">Contact us</a>
-    </nav>
-
     <section class="moneyband reveal" aria-label="What it costs you">
       <div class="mb">
         <span class="mb-n">£10&ndash;£30</span>
@@ -708,9 +717,9 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
         <span class="mb-s">No agency fee, no admin fee, no deposit, and nothing to pay to book a viewing.</span>
       </div>
       <div class="mb">
-        <span class="mb-n">5</span>
-        <span class="mb-l">bills already covered</span>
-        <span class="mb-s">Gas, electricity, water, wifi and the cleaning of shared areas.</span>
+        <span class="mb-n">100%</span>
+        <span class="mb-l">of bills included</span>
+        <span class="mb-s">Gas, electricity, water, wifi and the cleaning of shared areas — you never pay a bill of any kind.</span>
       </div>
     </section>
 
@@ -931,8 +940,13 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
         </select>
       </div>
       <div class="eq-row">
-        <label for="eqBenefits">Are you claiming benefits? <span class="eq-opt">(not including Housing Benefit, as that doesn't count)</span></label>
-        <select id="eqBenefits"><option value="">Please choose</option><option value="yes">Yes</option><option value="no">No</option></select>
+        <label for="eqBenefits">Are you claiming benefits?</label>
+        <select id="eqBenefits">
+          <option value="">Please choose</option>
+          <option value="uc_standard">Yes, claiming standard rate Universal Credit</option>
+          <option value="two_plus">Yes, claiming two or more benefits (not including Housing Benefit)</option>
+          <option value="no">No, not claiming benefits at all</option>
+        </select>
       </div>
       <button class="btn" type="button" id="eqSend">Send my details</button>
       <p class="eq-note">We pass this to the landlord of this property and nobody else.</p>
@@ -1823,8 +1837,13 @@ function mountWaitlist(el){
     <div class="eq-row"><label for="wlEmail">Email <span class="eq-opt">(if you have one)</span></label><input id="wlEmail" type="email" inputmode="email" autocomplete="email"></div>
     <div class="eq-row"><label for="wlArea">Area you're looking in <span class="eq-opt">(optional)</span></label><input id="wlArea" type="text" placeholder="e.g. Peckham, SE15"></div>
     <div class="eq-row">
-      <label for="wlBenefits">Are you claiming benefits? <span class="eq-opt">(not including Housing Benefit, as that doesn't count)</span></label>
-      <select id="wlBenefits"><option value="">Please choose</option><option value="yes">Yes</option><option value="no">No</option></select>
+      <label for="wlBenefits">Are you claiming benefits?</label>
+      <select id="wlBenefits">
+        <option value="">Please choose</option>
+        <option value="uc_standard">Yes, claiming standard rate Universal Credit</option>
+        <option value="two_plus">Yes, claiming two or more benefits (not including Housing Benefit)</option>
+        <option value="no">No, not claiming benefits at all</option>
+      </select>
     </div>
     <button class="btn" type="button" id="wlSend">Join the waiting list</button>
   </div>`;
@@ -1851,7 +1870,7 @@ async function submitWaitlist(){
       headers:{ apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}`, "Content-Type":"application/json" },
       body: JSON.stringify({ name, phone, email: email || null, area: area || null,
         bedrooms_needed: bedFilter.value ? Number(bedFilter.value) : null,
-        claiming_benefits: benefits === "yes" })
+        claiming_benefits: benefits === "uc_standard" || benefits === "two_plus" })
     });
     if(!res.ok) throw new Error(`waitlist failed: ${res.status}`);
     const box = btn.closest(".enquire");
@@ -2269,7 +2288,7 @@ async function sendEnquiry(){
   const sendBtn = $("eqSend");
   sendBtn.disabled = true;
   sendBtn.textContent = "Sending…";
-  const result = await submitEnquiryToPortal(current, { name, phone, email, when, benefits: benefits === "yes", roomId: pendingRoom ? pendingRoom.id : null });
+  const result = await submitEnquiryToPortal(current, { name, phone, email, when, benefits: benefits === "uc_standard" || benefits === "two_plus", roomId: pendingRoom ? pendingRoom.id : null });
   sendBtn.disabled = false;
   sendBtn.textContent = "Send my details";
 
@@ -2386,7 +2405,7 @@ document.querySelectorAll(".reveal").forEach(el => io.observe(el));
 
 /* a rotating hook line for the thing tenants actually care about */
 const HOOKS = [
-  "Bills included. No agency fees.",
+  "100% of bills included. No agency fees.",
   "£10\u2013£30 a week and that's your lot",
   "No deposit. Ever.",
   "Your rent comes straight from your benefit",
