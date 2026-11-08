@@ -131,11 +131,13 @@ header.top:not(.stuck) .brand .mark rect:not(.lite){fill:#fff}
 .top nav a.link{color:rgba(255,255,255,.85);text-decoration:none;font-weight:500;font-size:16px;transition:color .3s ease}
 header.top.stuck nav a.link{color:var(--ink)}
 .top nav a.link:hover{text-decoration:underline;text-underline-offset:4px}
-.callus,.whatsappus{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:8px 14px;font-weight:700;text-decoration:none;font-size:16px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .3s ease,color .3s ease,border-color .3s ease}
+.callus,.whatsappus,.imIntbtn{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:8px;padding:8px 14px;font-weight:700;text-decoration:none;font-size:16px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:background .3s ease,color .3s ease,border-color .3s ease;cursor:pointer}
 header.top.stuck .callus,header.top.stuck .whatsappus{background:var(--accent-soft);color:var(--accent);border-color:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
-.callus svg,.whatsappus svg{width:17px;height:17px;flex:none}
+.callus svg,.whatsappus svg,.imIntbtn svg{width:17px;height:17px;flex:none;fill:currentColor}
 .whatsappus{background:#25D366;border-color:#25D366;color:#fff}
 header.top.stuck .whatsappus{background:#25D366;color:#fff}
+.imIntbtn{background:var(--accent);border-color:var(--accent);color:#fff}
+header.top.stuck .imIntbtn{background:var(--accent);border-color:var(--accent);color:#fff}
 .savedbtn{display:flex;align-items:center;gap:8px;background:transparent;border:2px solid rgba(255,255,255,.4);border-radius:8px;padding:6px 13px;font-weight:600;font-size:16px;color:#fff;cursor:pointer;transition:border-color .2s ease,background .2s ease,color .3s ease}
 header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .savedbtn:hover{border-color:var(--heart)}
@@ -143,7 +145,7 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .savedbtn .n{min-width:19px;height:19px;border-radius:10px;background:var(--heart);color:var(--surface);font-size:12.5px;font-weight:700;display:grid;place-items:center;padding:0 5px;line-height:1}
 .savedbtn.bump{animation:bump .45s cubic-bezier(.2,1.6,.4,1)}
 @keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.16)}100%{transform:scale(1)}}
-@media(max-width:760px){.top nav a.link,.callus span,.whatsappus span{display:none}.callus,.whatsappus{padding:9px 11px}}
+@media(max-width:760px){.top nav a.link,.callus span,.whatsappus span,.imIntbtn span{display:none}.callus,.whatsappus,.imIntbtn{padding:9px 11px}}
 
 /* ================= hero ================= */
 .hero{position:relative;min-height:min(92vh,820px);display:flex;align-items:flex-end;overflow:hidden}
@@ -659,6 +661,10 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 3v18H5V3h4zm10 6v12h-4V9h4zM14 3v18h-4V3h4z"/></svg>
         Compare <span class="n" id="compareN">0</span>
       </button>
+      <button class="imIntbtn" type="button" id="imInterestedBtn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 21v-9h4v9zm6 0V11.2c0-.4.1-.7.4-1L14 4l1 .9c.3.2.4.6.4 1l-1 5.1h5.1c.9 0 1.6.7 1.6 1.6v.2l-2 7c-.2.7-.8 1.2-1.6 1.2z"/></svg>
+        <span>I'm interested</span>
+      </button>
       <a class="whatsappus" id="whatsappNav" href="#" target="_blank" rel="noreferrer">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.3-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.1 0-.3 0-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.3-.8.8-.8 1.9s.8 2.2.9 2.4c.1.2 1.6 2.4 3.8 3.4.5.2.9.4 1.3.5.5.2 1 .1 1.3.1.4-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.4-.3z"/></svg>
         <span>Chat with us on WhatsApp</span>
@@ -966,6 +972,17 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
       <p>Side by side, so it's easier to pick.</p>
     </div>
     <div id="cmpGrid" class="cmp-grid"></div>
+  </div>
+</dialog>
+
+<dialog id="interestDialog" aria-labelledby="intTitle">
+  <button class="d-x" type="button" id="intClose" aria-label="Close">&times;</button>
+  <div class="d-body">
+    <div class="d-head">
+      <h2 id="intTitle">Tell us what you're after</h2>
+      <p>Leave your details and we'll be in touch about anywhere that matches — no need to have found a place first.</p>
+    </div>
+    <div id="interestBox"></div>
   </div>
 </dialog>
 
@@ -2391,6 +2408,15 @@ function renderCompare(){
 $("compareBtn").onclick = () => { renderCompare(); compareDlg.showModal(); };
 $("cmpClose").onclick = () => compareDlg.close();
 compareDlg.addEventListener("click", e => { if(e.target === compareDlg) compareDlg.close(); });
+
+/* "I'm interested" in the header - the same waiting-list form used lower
+   down the page, but reachable as a popup from anywhere, so someone doesn't
+   have to scroll back up and browse first before telling us what they
+   want. */
+const interestDlg = $("interestDialog");
+$("imInterestedBtn").onclick = () => { mountWaitlist($("interestBox")); interestDlg.showModal(); };
+$("intClose").onclick = () => interestDlg.close();
+interestDlg.addEventListener("click", e => { if(e.target === interestDlg) interestDlg.close(); });
 
 /* scroll reveal + sticky header */
 const io = new IntersectionObserver(es => {
