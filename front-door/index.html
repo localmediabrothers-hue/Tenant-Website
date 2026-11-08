@@ -452,6 +452,17 @@ html{scroll-behavior:smooth}
   .sectionnav a{flex:none}
   .sectionnav a.sectionnav-contact{margin-left:0}
 }
+/* On a phone, everything past the room listing stays out of the way until
+   asked for, via the section-nav links above (Move-in steps, Common
+   questions, etc.) - a long scroll through every section just to reach the
+   rooms is the opposite of what someone on a small screen wants. A section
+   stays revealed once opened rather than re-hiding, since there's no reason
+   to make someone open it twice. Desktop is unaffected - this never applies
+   above the phone breakpoint. */
+@media(max-width:760px){
+  .mobile-gated{display:none}
+  .mobile-gated.mobile-shown{display:block}
+}
 
 /* ================= about ================= */
 .about{margin:64px 0 0;background:var(--accent-soft);border-radius:14px;padding:36px 32px}
@@ -534,6 +545,14 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 }
 @keyframes pop{from{opacity:0;transform:translateY(22px) scale(.97)}to{opacity:1;transform:none}}
 #compareDialog .dlg-card{max-width:960px}
+.gate-card{max-width:460px;padding:32px 28px;gap:0;text-align:center}
+.gate-card h2{font-size:24px}
+.gate-card p{color:var(--muted);margin:10px 0 22px;font-size:15.5px}
+.gate-choices{display:grid;gap:12px}
+.gate-choice{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;width:100%;border:2px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--surface);cursor:pointer;transition:border-color .2s ease,background .2s ease}
+.gate-choice:hover,.gate-choice:focus-visible{border-color:var(--accent);background:var(--accent-soft)}
+.gate-choice strong{font-family:var(--f-display);font-size:16.5px;font-weight:600}
+.gate-choice span{color:var(--muted);font-size:13.5px}
 .d-pic{height:clamp(220px,46vh,420px);flex:none;background:var(--sky);position:relative}
 .d-pic svg,.d-pic img{width:100%;height:100%;display:block;object-fit:cover}
 .pic-nav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;
@@ -701,7 +720,7 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
       Front Door
     </a>
     <nav>
-      <button class="savedbtn" type="button" id="savedBtn" aria-pressed="false">
+      <button class="savedbtn" type="button" id="savedBtn" aria-pressed="false" hidden>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 3.5C20 16 12 21 12 21z"/></svg>
         Saved <span class="n" id="savedN">0</span>
       </button>
@@ -712,6 +731,10 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
       <button class="imIntbtn" type="button" id="imInterestedBtn">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 21v-9h4v9zm6 0V11.2c0-.4.1-.7.4-1L14 4l1 .9c.3.2.4.6.4 1l-1 5.1h5.1c.9 0 1.6.7 1.6 1.6v.2l-2 7c-.2.7-.8 1.2-1.6 1.2z"/></svg>
         <span>I'm interested</span>
+      </button>
+      <button class="callus" type="button" id="providerLink">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 3h7a5 5 0 0 1 0 10h-4v8H6V3zm3 3v4h4a2 2 0 0 0 0-4H9z"/></svg>
+        <span>List your property</span>
       </button>
       <a class="whatsappus" id="whatsappNav" href="#" target="_blank" rel="noreferrer">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.3-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.1 0-.3 0-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.3-.8.8-.8 1.9s.8 2.2.9 2.4c.1.2 1.6 2.4 3.8 3.4.5.2.9.4 1.3.5.5.2 1 .1 1.3.1.4-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.4-.3z"/></svg>
@@ -824,7 +847,7 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 
     <section class="results" id="results" aria-label="Places to rent"></section>
 
-    <section class="explain reveal" id="costs">
+    <section class="explain reveal mobile-gated" id="costs">
       <h2>Common questions</h2>
       <p>The things people usually want to know before they ask to view anywhere.</p>
       <div class="exgrid exgrid-wide">
@@ -856,7 +879,7 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
       </div>
     </section>
 
-    <section class="help reveal" id="help">
+    <section class="help reveal mobile-gated" id="help">
       <h2>Move-in steps</h2>
       <p class="help-lead">A smooth, quick and hassle-free process from the first look to the day you get your keys.</p>
       <div class="help-grid">
@@ -878,7 +901,7 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
       </div>
     </section>
 
-    <section class="explain reveal" id="living-here">
+    <section class="explain reveal mobile-gated" id="living-here">
       <h2>What it's actually like to live here</h2>
       <p>This is transitional housing, not just a room — here's what that means day to day.</p>
       <div class="exgrid">
@@ -893,12 +916,12 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
       </div>
     </section>
 
-    <section class="about reveal" id="about">
+    <section class="about reveal mobile-gated" id="about">
       <h2>Why Front Door</h2>
       <p class="about-lead">Front Door exists to make transitional housing simple, safe and quick to move into, at exactly the moment people need that most. We work with landlords to offer places that are easy to move into and just as easy to move on from when you're ready for the next step — with your Housing Benefit or Universal Credit covering the cost, so there's no rent to chase and no stress hanging over you while you get back on your feet. Alongside a safe, stable place to live, we check in regularly and offer support to anyone who'd like a hand along the way — practical help, never pressure. It's housing built for people who are between places, not for people who plan to stay forever, and we're honest about that from day one.</p>
     </section>
 
-    <section class="testimonials reveal" id="testimonials" aria-labelledby="testimonialslabel">
+    <section class="testimonials reveal mobile-gated" id="testimonials" aria-labelledby="testimonialslabel">
       <h2 id="testimonialslabel">What people say</h2>
       <div class="t-grid">
         <blockquote class="t-card reveal">
@@ -918,7 +941,7 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
   </div>
 </main>
 
-<footer id="contact">
+<footer id="contact" class="mobile-gated">
   <div class="wrap foot">
     <p><strong>Front Door</strong> — homes to rent for people on Housing Benefit and Universal Credit. We're open 9am to 6pm, Monday to Friday. Prices on this page are examples.</p>
     <a class="callus" href="tel:07477488077">
@@ -929,9 +952,6 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.3-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.4c.1-.1.2-.3.2-.4.1-.1 0-.3 0-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.3-.8.8-.8 1.9s.8 2.2.9 2.4c.1.2 1.6 2.4 3.8 3.4.5.2.9.4 1.3.5.5.2 1 .1 1.3.1.4-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.4-.3z"/></svg>
       <span>Chat with us on WhatsApp</span>
     </a>
-  </div>
-  <div class="wrap foot-landlord">
-    <p>Got a property with empty rooms? <button type="button" id="providerLink">List it with us &rarr;</button></p>
   </div>
 </footer>
 
@@ -1111,6 +1131,23 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
     </div>
 
     <div id="provStepDone" hidden></div>
+  </div>
+ </div>
+</dialog>
+
+<dialog id="gateDialog" aria-label="Are you looking for a place, or listing one?">
+ <div class="dlg-card gate-card">
+  <h2>Welcome to Front Door</h2>
+  <p>Are you looking for a place to live, or do you have a property to list?</p>
+  <div class="gate-choices">
+    <button type="button" class="gate-choice" id="gateTenant">
+      <strong>I'm looking for a place</strong>
+      <span>Browse rooms and flats to rent</span>
+    </button>
+    <button type="button" class="gate-choice" id="gateProvider">
+      <strong>I have a property to list</strong>
+      <span>List a room, flat or house with us</span>
+    </button>
   </div>
  </div>
 </dialog>
@@ -2411,6 +2448,7 @@ document.addEventListener("keydown", e => {
   else if(isDialogOpen(compareDlg)) closeDialogEl(compareDlg);
   else if(isDialogOpen(interestDlg)) closeDialogEl(interestDlg);
   else if(isDialogOpen(providerDlg)) closeDialogEl(providerDlg);
+  else if(isDialogOpen($("gateDialog"))) closeDialogEl($("gateDialog"));
 });
 
 /* ---------------- detail + calculator ---------------- */
@@ -2810,6 +2848,38 @@ const HOOKS = [
 
 render();
 loadLiveProperties();
+
+/* ---------------- entry gate ----------------
+   Shown before anything else so a landlord doesn't have to hunt for "List
+   your property" buried in the footer - and so a tenant isn't shown
+   provider-only content by mistake. Escape/backdrop-click both resolve as
+   "I'm looking for a place", same as actually clicking that button, rather
+   than leaving a visitor stuck with no obvious way out. */
+const gateDlg = $("gateDialog");
+function closeGate(){ closeDialogEl(gateDlg); }
+$("gateTenant").onclick = closeGate;
+$("gateProvider").onclick = () => {
+  closeGate();
+  resetProviderDialog();
+  openDialogEl(providerDlg);
+};
+gateDlg.addEventListener("click", e => { if(e.target === gateDlg) closeGate(); });
+
+/* On a phone, the section-nav links double as the only way to reach
+   anything past the room listing (see the .mobile-gated CSS) - clicking one
+   reveals its target just before the browser's own smooth-scroll runs, so
+   there's something there to scroll to. No-op on desktop, where nothing is
+   gated in the first place. */
+document.querySelectorAll(".sectionnav a[href^='#']").forEach(a => {
+  a.addEventListener("click", () => {
+    const target = document.querySelector(a.getAttribute("href"));
+    if(target) target.classList.add("mobile-shown");
+  });
+});
+// Skip the gate on a shared listing link - someone arriving at a specific
+// property via a sent link should land straight on it, not be asked to
+// pick a role first.
+if(!/^#home-/.test(location.hash)) openDialogEl(gateDlg);
 </script>
 </body>
 </html>
