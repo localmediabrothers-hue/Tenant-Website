@@ -602,6 +602,7 @@ dialog[open]{animation:pop .34s cubic-bezier(.2,.9,.3,1)}
 .enquire{border:2px solid var(--accent);border-radius:14px;padding:20px;background:var(--accent-soft)}
 .enquire h4{font-family:var(--f-display);font-size:19px;font-weight:700;color:var(--accent)}
 .eq-lead{margin:6px 0 16px;font-size:15.5px;color:var(--muted)}
+.eq-lead a,.eq-done p a{color:var(--accent);font-weight:700;text-decoration:underline;text-underline-offset:2px}
 .eq-row{margin-bottom:12px}
 .eq-row label{display:block;font-weight:600;font-size:15px;margin-bottom:6px}
 .eq-opt{font-weight:400;color:var(--muted);font-size:13.5px}
@@ -1891,7 +1892,7 @@ async function submitWaitlist(){
     });
     if(!res.ok) throw new Error(`waitlist failed: ${res.status}`);
     const box = btn.closest(".enquire");
-    if(box) box.innerHTML = `<h4>You're on the list</h4><p class="eq-lead">We'll be in touch on ${esc(phone)} the moment something matches. If you'd rather talk now, call ${CONTACT_PHONE_DISPLAY}.</p>`;
+    if(box) box.innerHTML = `<h4>You're on the list</h4><p class="eq-lead">We'll be in touch on ${esc(phone)} the moment something matches. If you'd rather talk now, <a href="${whatsappLink("Hi, I've just joined the waiting list on the Front Door website.")}" target="_blank" rel="noreferrer">chat with us on WhatsApp</a>.</p>`;
   }catch(e){
     console.error("[Front Door] Waiting list signup failed:", e);
     btn.disabled = false; btn.textContent = "Join the waiting list";
@@ -2320,7 +2321,7 @@ async function sendEnquiry(){
     <h4>Thanks ${esc(name)}, that's with us</h4>
     <p>The landlord will be in touch about
     ${esc(whatTheyAsked)} at ${esc(current.addr.split(",")[0])} to arrange a viewing.
-    If you'd rather not wait, call us on ${CONTACT_PHONE_DISPLAY}.</p>
+    If you'd rather not wait, <a href="${whatsappLink("Hi, I've just asked to view a room on the Front Door website.")}" target="_blank" rel="noreferrer">chat with us on WhatsApp</a>.</p>
   </div>`;
 }
 
