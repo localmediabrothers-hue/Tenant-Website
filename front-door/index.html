@@ -2057,6 +2057,10 @@ function renderRoomBlocks(count){
             <option value="single">Single</option>
           </select>
         </div>
+        <div>
+          <label for="provRoomPrice${i}">Weekly service charge (&pound;)</label>
+          <input id="provRoomPrice${i}" type="number" inputmode="numeric" min="1" max="500">
+        </div>
       </div>
       <label class="prov-room-check"><input id="provRoomEnsuite${i}" type="checkbox"> Ensuite</label>
       <label class="prov-room-check"><input id="provRoomAvailable${i}" type="checkbox" checked> Available now</label>
@@ -2128,8 +2132,16 @@ $("provSubmit").onclick = async () => {
     size_sqm: $(`provRoomSize${i}`).value ? Number($(`provRoomSize${i}`).value) : null,
     room_type: $(`provRoomType${i}`).value,
     ensuite: $(`provRoomEnsuite${i}`).checked,
+    weekly_service_charge: $(`provRoomPrice${i}`).value ? Number($(`provRoomPrice${i}`).value) : null,
     available: $(`provRoomAvailable${i}`).checked
   }));
+
+  const missingPrice = rooms.findIndex(r => r.available && !r.weekly_service_charge);
+  if(missingPrice !== -1){
+    toast(`Please add a weekly service charge for Room ${missingPrice + 1}, or untick "Available now" if it isn't ready yet.`);
+    $(`provRoomPrice${missingPrice}`).focus();
+    return;
+  }
 
   const btn = $("provSubmit");
   btn.disabled = true; btn.textContent = "Sending…";
