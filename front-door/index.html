@@ -627,6 +627,15 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 .d-x{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface);box-shadow:var(--shadow-2);cursor:pointer;font-size:20px;line-height:1;display:grid;place-items:center;transition:transform .15s ease}
 .d-x:hover{transform:rotate(90deg)}
 .d-body{padding:26px 28px 28px;display:grid;gap:20px;flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+/* Only #detail has a .d-pic photo header above .d-body - everywhere else
+   .d-body is the only content, so it's the one that should scroll. On
+   #detail specifically, that split meant the photo stayed pinned at the
+   top forever while the room/price details scrolled past underneath it,
+   rather than the photo scrolling away with everything else like the rest
+   of the page does. Letting the whole card scroll as one, instead of just
+   .d-body scrolling inside a fixed-height photo header, fixes that. */
+#detail .dlg-card{overflow-y:auto;overflow-x:hidden}
+#detail .d-body{flex:none;overflow:visible}
 .d-body > *{min-width:0}
 .d-body h2{font-size:27px;font-weight:800;padding-right:50px}
 .d-head p{margin:6px 0 0;color:var(--muted);font-size:16.5px}
@@ -742,7 +751,14 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 .eq-done h4{font-size:20px}
 .eq-done p{margin:8px 0 0;color:var(--muted);font-size:16px}
 .d-actions{display:flex;gap:12px;flex-wrap:wrap;position:sticky;bottom:-26px;background:var(--surface);padding:16px 0 0;margin-bottom:-4px;border-top:1px solid var(--line-soft)}
-.d-actions .btn{flex:1;min-width:150px}
+/* .btn's own white-space:nowrap clipped this one silently whenever its
+   text was set to something longer than the default ("Ask to view a
+   room" vs. "Ask to view this") and the two buttons' shared flex space
+   left too little room for it - the text just got cut off outside the
+   button with no overflow indicator. Letting it wrap, with a smaller
+   min-width, means a long label grows the button down rather than
+   trimming invisibly off the edge. */
+.d-actions .btn{flex:1;min-width:130px;white-space:normal;line-height:1.25;text-align:center;padding:14px 14px;font-size:15.5px}
 
 /* ================= toast ================= */
 .toasts{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100;display:grid;gap:10px;width:calc(100% - 32px);max-width:400px;pointer-events:none}
