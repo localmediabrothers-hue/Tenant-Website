@@ -341,7 +341,11 @@ html{scroll-behavior:smooth}
 .map-bar p{margin:0;color:var(--muted);font-size:15px}
 .btn-text{background:none;border:0;color:var(--accent);font-weight:700;font-size:15px;cursor:pointer;padding:6px 2px}
 .btn-text:hover{text-decoration:underline}
-#mapCanvas{height:min(72vh,620px);min-height:360px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2,var(--surface))}
+/* isolation:isolate confines Leaflet's internal z-indexed layers (its zoom
+   controls and popups go up to z-index:1000) to this box - they can never
+   render above a dialog or anything else outside it, regardless of the
+   numbers involved. Belt-and-braces with the dialog's own z-index above. */
+#mapCanvas{height:min(72vh,620px);min-height:360px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--surface-2,var(--surface));isolation:isolate}
 .map-pin{background:var(--accent);color:var(--on-accent);border-radius:50% 50% 50% 0;width:30px;height:30px;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-2);border:2px solid var(--surface)}
 .map-pin svg{transform:rotate(45deg);width:14px;height:14px;fill:currentColor}
 /* Round and a different colour from the house pins (teardrop, accent) so a
@@ -570,7 +574,14 @@ dialog{
   max-width:none;
   max-height:none;
   background:rgba(10,15,11,.6);
-  z-index:200;
+  /* Leaflet's own zoom controls and popups use z-index values up to 1000 by
+     default, and nothing was confining them to the map's own box - so a
+     dialog opened from a map marker's popup (tap a house on the map ->
+     "View this place") could end up with the still-open map controls
+     rendering on top of it, swallowing every tap. 1200 clears that with
+     room to spare; #mapCanvas below is also isolated as a second layer of
+     protection so this never depends on winning a number comparison. */
+  z-index:1200;
   align-items:center;
   justify-content:center;
   overflow-y:auto;
@@ -2126,7 +2137,7 @@ async function refreshMapMarkers({ keepView = false } = {}){
       <div class="mp-title">${esc(h.title)}</div>
       <div class="mp-addr">${esc(h.addr)}</div>
       <button type="button">View this place</button>`;
-    popupEl.querySelector("button").onclick = () => openDetail(h);
+    popupEl.querySelector("button").onclick = () => { leafletMap.closePopup(); openDetail(h); };
     marker.bindPopup(popupEl);
     marker.addTo(mapMarkerLayer);
     points.push([ll.lat, ll.lng]);
