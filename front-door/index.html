@@ -657,8 +657,22 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 .prov-room input[type=number],.prov-room select{width:100%;padding:9px 10px;border:2px solid var(--line);border-radius:7px;font-size:15px;background:var(--surface);color:var(--ink)}
 .prov-room .prov-room-check{display:flex;align-items:center;gap:7px;font-size:14.5px;font-weight:600;color:var(--ink);margin-top:10px}
 .prov-room .prov-room-check input{width:16px;height:16px}
-.prov-radio{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:500;color:var(--ink);margin-top:8px;cursor:pointer}
-.prov-radio input{width:17px;height:17px;flex:none}
+/* The provider wizard reads as a proper form - grouped sections with a
+   title each, rather than one long flat run of questions - instead of
+   native radio buttons (a bare dot easy to miss, especially on a phone)
+   for the one choice that matters most upfront: which housing model a
+   property is listed under. */
+.prov-section{border:none;padding:0;margin:26px 0 0}
+.prov-section:first-child{margin-top:0}
+.prov-section legend{font-family:var(--f-display);font-weight:700;font-size:16px;padding:0 0 12px;width:100%;border-bottom:1px solid var(--line);margin-bottom:14px}
+.model-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.model-choice{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;border:2px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface);cursor:pointer;transition:border-color .15s ease,background .15s ease}
+.model-choice strong{font-size:14.5px;font-weight:700}
+.model-choice span{font-size:12.5px;color:var(--muted)}
+.model-choice:hover{border-color:var(--accent)}
+.model-choice[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.model-choice[aria-pressed="true"] span{color:var(--accent)}
+@media(max-width:480px){.model-choices{grid-template-columns:1fr}}
 
 .cmp-grid{display:grid;gap:16px}
 @media(min-width:700px){.cmp-grid{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}}
@@ -1187,58 +1201,82 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
     </div>
 
     <div id="provStepDetails" hidden>
-      <div class="eq-row">
-        <label for="provType">What type of property is it?</label>
-        <select id="provType">
-          <option value="house">House</option>
-          <option value="flat">Flat</option>
-          <option value="studio">Studio</option>
-        </select>
-      </div>
-      <div class="eq-row">
-        <label>Which model is this house under?</label>
-        <label class="prov-radio"><input type="radio" name="provHousingModel" value="transitional" checked> Transitional accommodation</label>
-        <label class="prov-radio"><input type="radio" name="provHousingModel" value="supported"> Supported housing</label>
-      </div>
-      <div class="eq-row">
-        <label for="provPostcode">What's the postcode?</label>
-        <input id="provPostcode" type="text" autocomplete="postal-code">
-      </div>
-      <div class="eq-row">
-        <label for="provAddress">What's the street name and door number?</label>
-        <input id="provAddress" type="text" autocomplete="address-line1">
-      </div>
-      <div class="eq-row">
-        <label for="provToilets">How many toilets/bathrooms does it have?</label>
-        <input id="provToilets" type="number" inputmode="numeric" min="0" max="20">
-      </div>
-      <div class="eq-row">
-        <label for="provFloors">How many floors does it have?</label>
-        <input id="provFloors" type="number" inputmode="numeric" min="0" max="20">
-      </div>
-      <div class="eq-row">
-        <label for="provRooms">How many rooms does your property have?</label>
-        <select id="provRooms">
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-        </select>
-      </div>
+      <fieldset class="prov-section">
+        <legend>About the property</legend>
+        <div class="eq-row">
+          <label for="provType">Property type</label>
+          <select id="provType">
+            <option value="house">House</option>
+            <option value="flat">Flat</option>
+            <option value="studio">Studio</option>
+          </select>
+        </div>
+        <div class="eq-row">
+          <label>Housing model</label>
+          <div class="model-choices" id="provModelChoices">
+            <button type="button" class="model-choice" data-value="transitional" aria-pressed="true">
+              <strong>Transitional accommodation</strong>
+              <span>Two benefits needed</span>
+            </button>
+            <button type="button" class="model-choice" data-value="supported" aria-pressed="false">
+              <strong>Supported housing</strong>
+              <span>One benefit needed</span>
+            </button>
+          </div>
+        </div>
+        <div class="eq-row where-field">
+          <label for="provPostcode">Postcode</label>
+          <input id="provPostcode" type="text" autocomplete="postal-code" placeholder="e.g. SE15 4AA">
+          <ul class="where-suggest" id="provPostcodeSuggest" role="listbox" hidden></ul>
+        </div>
+        <div class="eq-row">
+          <label for="provAddress">Street name and door number</label>
+          <input id="provAddress" type="text" autocomplete="address-line1" placeholder="e.g. 12 Example Street">
+        </div>
+        <div class="eq-row">
+          <label for="provToilets">Toilets/bathrooms</label>
+          <input id="provToilets" type="number" inputmode="numeric" min="0" max="20">
+        </div>
+        <div class="eq-row">
+          <label for="provFloors">Floors</label>
+          <input id="provFloors" type="number" inputmode="numeric" min="0" max="20">
+        </div>
+      </fieldset>
 
-      <div id="provRoomsDetail"></div>
+      <fieldset class="prov-section">
+        <legend>Rooms</legend>
+        <div class="eq-row">
+          <label for="provRooms">Number of rooms</label>
+          <select id="provRooms">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
+        </div>
 
-      <div class="eq-row">
-        <label>Does your property have any of these?</label>
-        <div class="prov-features" id="provFeatures"></div>
-      </div>
-      <div class="eq-row">
-        <label for="provPhotos">Photos of the property/rooms <span class="eq-opt">(up to 12, optional but it helps)</span></label>
-        <input id="provPhotos" type="file" accept="image/*" multiple>
-        <div id="provPhotoPreview" class="prov-photo-preview"></div>
-      </div>
+        <div id="provRoomsDetail"></div>
+      </fieldset>
+
+      <fieldset class="prov-section">
+        <legend>Features</legend>
+        <div class="eq-row">
+          <label>Does your property have any of these?</label>
+          <div class="prov-features" id="provFeatures"></div>
+        </div>
+      </fieldset>
+
+      <fieldset class="prov-section">
+        <legend>Photos</legend>
+        <div class="eq-row">
+          <label for="provPhotos">Photos of the property/rooms <span class="eq-opt">(up to 12, optional but it helps)</span></label>
+          <input id="provPhotos" type="file" accept="image/*" multiple>
+          <div id="provPhotoPreview" class="prov-photo-preview"></div>
+        </div>
+      </fieldset>
+
       <button class="btn" type="button" id="provSubmit">Submit</button>
     </div>
 
@@ -2168,6 +2206,46 @@ function renderWhereSuggestions(items){
   box.hidden = false;
 }
 
+/* Same live-suggestions idea as "Where do you want to live?" above, but
+   postcodes only (not town names) - a provider is giving this property's
+   actual postcode, not searching an area. Self-contained rather than
+   reusing fetchWhereSuggestions, so it doesn't need to care about the
+   hero search's own debounce/token state. */
+function wirePostcodeAutocomplete(inputEl, listEl){
+  let token = 0, debounce;
+  async function fetchSuggestions(q){
+    const myToken = ++token;
+    const trimmed = q.trim();
+    if(trimmed.length < 2){ render([]); return; }
+    try{
+      const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(trimmed)}/autocomplete?limit=6`);
+      if(!res.ok){ render([]); return; }
+      const body = await res.json();
+      if(myToken !== token) return; // superseded by a newer keystroke
+      render(Array.isArray(body.result) ? body.result : []);
+    }catch(e){ render([]); }
+  }
+  function render(postcodes){
+    if(!postcodes.length){ listEl.hidden = true; listEl.innerHTML = ""; return; }
+    listEl.innerHTML = postcodes.map(pc => `<li role="option" data-value="${esc(pc)}">${esc(pc)}</li>`).join("");
+    listEl.hidden = false;
+  }
+  inputEl.addEventListener("input", () => {
+    clearTimeout(debounce);
+    const q = inputEl.value;
+    debounce = setTimeout(() => fetchSuggestions(q), 280);
+  });
+  listEl.addEventListener("mousedown", e => {
+    const li = e.target.closest("li[data-value]");
+    if(!li) return;
+    inputEl.value = li.dataset.value;
+    listEl.hidden = true;
+  });
+  inputEl.addEventListener("blur", () => setTimeout(() => { listEl.hidden = true; }, 120));
+  inputEl.addEventListener("keydown", e => { if(e.key === "Escape") listEl.hidden = true; });
+}
+wirePostcodeAutocomplete($("provPostcode"), $("provPostcodeSuggest"));
+
 async function refreshMapMarkers({ keepView = false } = {}){
   if(!leafletMap) return;
   const list = matching();
@@ -2335,6 +2413,13 @@ const providerDlg = $("providerDialog");
 let providerFeatures = [];
 let providerPhotos = [];
 let providerPhotoLabels = [];
+let providerHousingModel = "transitional";
+$("provModelChoices").querySelectorAll(".model-choice").forEach(btn => {
+  btn.onclick = () => {
+    providerHousingModel = btn.dataset.value;
+    $("provModelChoices").querySelectorAll(".model-choice").forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+  };
+});
 
 /* One block of the same four questions per room, regenerated whenever the
    room count dropdown changes. Each room's own inputs are read straight
@@ -2371,7 +2456,8 @@ function renderRoomBlocks(count){
 function resetProviderDialog(){
   $("provPhone").value = "";
   $("provType").value = "house";
-  document.querySelector('input[name="provHousingModel"][value="transitional"]').checked = true;
+  providerHousingModel = "transitional";
+  $("provModelChoices").querySelectorAll(".model-choice").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.value === "transitional")));
   $("provRooms").value = "1";
   $("provPostcode").value = "";
   $("provAddress").value = "";
@@ -2488,7 +2574,7 @@ $("provSubmit").onclick = async () => {
     formData.set("rooms_count", String(roomsCount));
     formData.set("rooms", JSON.stringify(rooms));
     formData.set("property_type", $("provType").value);
-    formData.set("housing_model", document.querySelector('input[name="provHousingModel"]:checked').value);
+    formData.set("housing_model", providerHousingModel);
     formData.set("postcode", postcode);
     formData.set("street_address", $("provAddress").value.trim());
     formData.set("toilets", $("provToilets").value || "");
