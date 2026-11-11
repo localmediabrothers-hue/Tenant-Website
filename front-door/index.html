@@ -2348,7 +2348,7 @@ const fitIcon = {
 
 /* "let me know when something comes up" — shown wherever there's nothing to
    offer right now, so that demand doesn't just walk away. */
-function mountWaitlist(el, title = "Join the waiting list"){
+function mountWaitlist(el, title = "Join the waiting list", buttonLabel = "Join the waiting list"){
   if(!el) return;
   el.innerHTML = `<div class="enquire">
     <h4>${esc(title)}</h4>
@@ -2366,7 +2366,7 @@ function mountWaitlist(el, title = "Join the waiting list"){
         <option value="no">No, not claiming benefits at all</option>
       </select>
     </div>
-    <button class="btn" type="button" id="wlSend">Join the waiting list</button>
+    <button class="btn" type="button" id="wlSend" data-label="${esc(buttonLabel)}">${esc(buttonLabel)}</button>
   </div>`;
   $("wlSend").onclick = submitWaitlist;
 }
@@ -2398,7 +2398,7 @@ async function submitWaitlist(){
     if(box) box.innerHTML = `<h4>You're on the list</h4><p class="eq-lead">We'll be in touch on ${esc(phone)} the moment something matches. If you'd rather talk now, <a href="${whatsappLink("Hi, I've just joined the waiting list on the Front Door website.")}" target="_blank" rel="noreferrer">chat with us on WhatsApp</a>.</p>`;
   }catch(e){
     console.error("[Front Door] Waiting list signup failed:", e);
-    btn.disabled = false; btn.textContent = "Join the waiting list";
+    btn.disabled = false; btn.textContent = btn.dataset.label;
     toast(`That didn't send — please try again, or call us on ${CONTACT_PHONE_DISPLAY}.`);
   }
 }
@@ -3225,7 +3225,7 @@ const HOOKS = [
 
 render();
 loadLiveProperties();
-mountWaitlist($("findRoomForm"), "Find me a room");
+mountWaitlist($("findRoomForm"), "Find me a room", "Find me a room");
 
 /* ---------------- entry gate ----------------
    Shown before anything else so a landlord doesn't have to hunt for "List
