@@ -3,10 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Front Door</title>
+<title>Front Door — Rooms and flats for Housing Benefit &amp; Universal Credit tenants</title>
+<meta name="description" content="Vetted rooms, flats and houses to rent — every landlord accepts Housing Benefit and Universal Credit. No deposit, no agency fees, bills included in one weekly service charge.">
+<!-- SITE_URL: update this one line if/when the site moves to its own domain -
+     everything below reads from it, nothing else needs to change. -->
+<link rel="canonical" href="https://front-door.pages.dev/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Front Door">
+<meta property="og:title" content="Front Door — Rooms and flats for Housing Benefit &amp; Universal Credit tenants">
+<meta property="og:description" content="Vetted rooms, flats and houses to rent — every landlord accepts Housing Benefit and Universal Credit. No deposit, no agency fees, bills included in one weekly service charge.">
+<meta property="og:url" content="https://front-door.pages.dev/">
+<meta property="og:image" content="https://front-door.pages.dev/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Front Door — Rooms and flats for Housing Benefit &amp; Universal Credit tenants">
+<meta name="twitter:description" content="Vetted rooms, flats and houses to rent — every landlord accepts Housing Benefit and Universal Credit. No deposit, no agency fees, bills included in one weekly service charge.">
+<meta name="twitter:image" content="https://front-door.pages.dev/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Front Door",
+  "url": "https://front-door.pages.dev/",
+  "description": "Vetted transitional housing for people on Housing Benefit and Universal Credit — rooms, flats and houses with no deposit and bills included.",
+  "areaServed": "GB"
+}
+</script>
 
 <style>
 :root{
@@ -233,7 +257,7 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .scrollcue svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;display:block}
 @keyframes cue{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,9px)}}
 html{scroll-behavior:smooth}
-#costs,#help,#results,#mapView,#living-here,#about,#testimonials,#contact{scroll-margin-top:160px}
+#costs,#help,#results,#mapView,#living-here,#about,#partners,#testimonials,#contact{scroll-margin-top:160px}
 
 .hero-scrim-top{position:absolute;top:0;left:0;right:0;height:170px;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(6,10,7,.5) 0%,rgba(6,10,7,0) 100%)}
 /* Used to fade all the way to transparent by ~78% up, which left the
@@ -261,6 +285,8 @@ html{scroll-behavior:smooth}
 .mb-n{display:block;font-family:var(--f-display);font-size:clamp(30px,4vw,42px);font-weight:600;letter-spacing:-.02em;color:var(--accent);line-height:1.05}
 .mb-l{display:block;font-weight:700;font-size:17px;margin-top:6px}
 .mb-s{display:block;color:var(--muted);font-size:15px;margin-top:6px;line-height:1.45}
+.live-stats{text-align:center;color:var(--muted);font-size:14.5px;margin:14px 0 0}
+.live-stats b{color:var(--accent);font-weight:700}
 
 .deposit{margin:22px 0 0;background:var(--accent-soft);border-radius:14px;padding:26px 28px}
 .deposit h3{font-size:21px;font-weight:700;color:var(--accent)}
@@ -767,6 +793,7 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
     <a href="#costs">Common questions</a>
     <a href="#living-here">Living here</a>
     <a href="#about">Why Front Door</a>
+    <a href="#partners">For councils &amp; support workers</a>
     <a href="#testimonials">What people say</a>
     <a href="#contact" class="sectionnav-contact">Contact us</a>
   </nav>
@@ -814,6 +841,8 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
         <span class="mb-s">Gas, electricity, water, wifi and the cleaning of shared areas — you never pay a bill of any kind.</span>
       </div>
     </section>
+
+    <p class="live-stats" id="liveStats" hidden></p>
 
     <section aria-labelledby="filterlabel">
       <h2 id="filterlabel" class="sr">Filter the list</h2>
@@ -935,6 +964,28 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
     <section class="about reveal mobile-gated" id="about">
       <h2>Why Front Door</h2>
       <p class="about-lead">Front Door exists to make transitional housing simple, safe and quick to move into, at exactly the moment people need that most. We work with landlords to offer places that are easy to move into and just as easy to move on from when you're ready for the next step — with your Housing Benefit or Universal Credit covering the cost, so there's no rent to chase and no stress hanging over you while you get back on your feet. Alongside a safe, stable place to live, we check in regularly and offer support to anyone who'd like a hand along the way — practical help, never pressure. It's housing built for people who are between places, not for people who plan to stay forever, and we're honest about that from day one.</p>
+    </section>
+
+    <section class="explain reveal mobile-gated" id="partners">
+      <h2>For councils &amp; support workers</h2>
+      <p>If you're referring someone into housing, here's how working with Front Door is different from a normal letting.</p>
+      <div class="exgrid">
+        <div class="excard reveal">
+          <h3><span class="ic a"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg></span>Straight to WhatsApp, not a form queue</h3>
+          <p>Message us directly with who you're placing and what they need — no portal login, no waiting on a reply to a generic enquiry form. You'll hear back from a person, not an inbox.</p>
+        </div>
+        <div class="excard reveal">
+          <h3><span class="ic b"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg></span>Eligibility checked before anyone views</h3>
+          <p>Every placement goes through the same affordability check every tenant gets — Housing Benefit or Universal Credit covering the cost is confirmed before a viewing is booked, so nobody's time is wasted.</p>
+        </div>
+        <div class="excard reveal">
+          <h3><span class="ic c"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 3.5C20 16 12 21 12 21z"/></svg></span>Ongoing support, not just a tenancy</h3>
+          <p>Regular check-ins continue after move-in, so you've got somewhere to escalate to if things change for the person you referred — not a landlord who disappears once the tenancy starts.</p>
+        </div>
+      </div>
+      <a class="btn" href="#" id="partnersWhatsapp" target="_blank" rel="noreferrer" style="display:inline-block;margin-top:8px;text-decoration:none">
+        Message us about a referral &rarr;
+      </a>
     </section>
 
     <section class="testimonials reveal mobile-gated" id="testimonials" aria-labelledby="testimonialslabel">
@@ -1303,7 +1354,46 @@ const whatsappLink = (text) => `https://wa.me/${WHATSAPP_NUMBER}` + (text ? `?te
   const nav = document.getElementById("whatsappNav"), foot = document.getElementById("whatsappFoot");
   if(nav) nav.href = link;
   if(foot) foot.href = link;
+  const partners = document.getElementById("partnersWhatsapp");
+  if(partners) partners.href = whatsappLink("Hi, I'm a council/support worker and I'd like to refer someone for housing.");
 }
+
+/* ---------------- analytics ----------------
+   First-party and cookie-free - nothing here is a third-party script, no
+   consent banner needed. Every call is fire-and-forget: analytics must
+   never be the reason a real feature breaks, so failures are swallowed
+   silently rather than surfaced anywhere a visitor would see them. */
+function trackEvent(eventType, meta = {}){
+  if(!SUPABASE_CONFIGURED) return;
+  fetch(`${SUPABASE_URL}/functions/v1/track-event`, {
+    method: "POST",
+    headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ event_type: eventType, meta }),
+  }).catch(() => {});
+}
+trackEvent("page_view", { path: location.pathname });
+
+/* A couple of real, live numbers rather than hand-typed claims - computed
+   straight from the database by the public-stats function, so they're
+   never stale or made up. Quietly does nothing if the fetch fails; the
+   stat line just doesn't appear. */
+async function loadPublicStats(){
+  if(!SUPABASE_CONFIGURED) return;
+  try{
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/public-stats`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+    });
+    if(!res.ok) return;
+    const body = await res.json();
+    const el = $("liveStats");
+    if(!el) return;
+    const parts = [];
+    if(body.properties_live) parts.push(`<b>${body.properties_live}</b> ${body.properties_live === 1 ? "home" : "homes"} live right now`);
+    if(body.people_housed) parts.push(`<b>${body.people_housed}</b> ${body.people_housed === 1 ? "person" : "people"} housed so far`);
+    if(parts.length){ el.innerHTML = parts.join(" &middot; "); el.hidden = false; }
+  }catch(e){ /* the stat line just doesn't show - not worth a console warning */ }
+}
+loadPublicStats();
 
 async function submitEnquiryToPortal(h, { name, phone, email, when, benefits, roomId }){
   if(!SUPABASE_CONFIGURED){
@@ -1335,6 +1425,7 @@ async function submitEnquiryToPortal(h, { name, phone, email, when, benefits, ro
       })
     });
     if(!res.ok) throw new Error(`submit-enquiry returned ${res.status}: ${await res.text()}`);
+    trackEvent("enquiry_submitted", { property_id: h.id });
     return { ok:true, configured:true };
   }catch(e){
     console.error("[Front Door] Sending the enquiry to the provider portal failed:", e);
@@ -2345,6 +2436,7 @@ $("provSubmit").onclick = async () => {
       body: formData
     });
     if(!res.ok) throw new Error(`provider listing failed: ${res.status}`);
+    trackEvent("provider_listing_submitted");
     $("provStepDetails").hidden = true;
     $("provStepDone").hidden = false;
     $("provStepDone").innerHTML = `<div class="eq-done">
@@ -2651,6 +2743,7 @@ function openDetail(h, opts){
      tap just redraw the same popup instead of locking scroll twice. */
   if(isDialogOpen(dlg)) closeDialogEl(dlg);
   current = h; animFrom = 0; picIndex = 0;
+  if(h._live) trackEvent("property_view", { property_id: h.id, title: h.title });
   renderPic();
   $("dTitle").textContent = h.title;
   $("dAddr").textContent  = h.addr + " · " + h.avail;
@@ -2859,6 +2952,7 @@ $("searchForm").addEventListener("submit", async e => {
   const loc = await resolveLocation(q);
   btn.disabled = false; btn.textContent = original;
   if(!loc){ toast("Couldn't find that — try a postcode or a town/area name."); return; }
+  trackEvent("map_search", { query: q, label: loc.label });
   showMap(loc);
 });
 $("mapBack").addEventListener("click", showList);
