@@ -907,10 +907,9 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
         </label>
       </div>
       <p class="count" id="count" role="status"></p>
-      <button class="btn-text" type="button" id="registerInterestToggle">
-        Can't see the right place? Register your interest &rarr;
+      <button class="btn-text" type="button" id="searchMapToggle">
+        Search on map &rarr;
       </button>
-      <div class="waitlist" id="waitlistStandalone" hidden></div>
     </section>
 
     <section class="map-view" id="mapView" hidden aria-label="Properties on a map">
@@ -2994,13 +2993,7 @@ $("searchForm").addEventListener("submit", async e => {
 });
 $("mapBack").addEventListener("click", showList);
 
-$("registerInterestToggle").addEventListener("click", () => {
-  const box = $("waitlistStandalone");
-  const opening = box.hidden;
-  box.hidden = !opening;
-  if(opening && !box.innerHTML) mountWaitlist(box);
-  if(opening) box.scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block:"nearest"});
-});
+$("searchMapToggle").addEventListener("click", () => showMap());
 bedFilter.addEventListener("change", render);
 priceFilter.addEventListener("change", render);
 
