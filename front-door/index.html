@@ -151,7 +151,7 @@ header.top:not(.stuck) .brand .mark path{stroke:#fff}
 header.top:not(.stuck) .brand .mark rect:not(.lite){fill:#fff}
 .brand .mark .lite{fill:var(--glow);opacity:0;transition:opacity .4s ease}
 .brand:hover .mark .lite{opacity:1}
-.top nav{margin-left:auto;display:flex;align-items:center;gap:14px}
+.topbar nav{margin-left:auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:flex-end}
 .top nav a.link{color:rgba(255,255,255,.85);text-decoration:none;font-weight:500;font-size:16px;transition:color .3s ease}
 header.top.stuck nav a.link{color:var(--ink)}
 .top nav a.link:hover{text-decoration:underline;text-underline-offset:4px}
@@ -169,7 +169,15 @@ header.top.stuck .savedbtn{border-color:var(--line);color:var(--ink)}
 .savedbtn .n{min-width:19px;height:19px;border-radius:10px;background:var(--heart);color:var(--surface);font-size:12.5px;font-weight:700;display:grid;place-items:center;padding:0 5px;line-height:1}
 .savedbtn.bump{animation:bump .45s cubic-bezier(.2,1.6,.4,1)}
 @keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.16)}100%{transform:scale(1)}}
-@media(max-width:760px){.top nav a.link,.callus span,.whatsappus span,.imIntbtn span{display:none}.callus,.whatsappus,.imIntbtn{padding:9px 11px}}
+/* The words stay, rather than shrinking to bare icons - the buttons wrap
+   onto their own row under the logo on a narrow phone instead, since the
+   full "List your property" / "Chat with us on WhatsApp" wording doesn't
+   fit next to it in one line. */
+@media(max-width:760px){
+  .top nav{gap:10px}
+  .callus,.whatsappus{padding:8px 12px;font-size:14.5px;gap:7px}
+  .callus svg,.whatsappus svg{width:15px;height:15px}
+}
 
 /* ================= hero ================= */
 .hero{position:relative;min-height:min(92vh,820px);display:flex;align-items:flex-end;overflow:hidden}
@@ -266,7 +274,7 @@ html{scroll-behavior:smooth}
 .hero-lamp{position:absolute;top:260px;left:14%;width:46px;height:160px;z-index:1;pointer-events:none}
 .hero-lamp-swing{transform-origin:20px 0;animation:lampSwing 4.5s ease-in-out infinite}
 @keyframes lampSwing{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
-@media(max-width:680px){.hero-lamp{left:8%;top:84px;width:38px;height:130px}}
+@media(max-width:680px){.hero-lamp{left:8%;top:230px;width:38px;height:130px}}
 .hero-scrim-top{position:absolute;top:0;left:0;right:0;height:170px;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(6,10,7,.5) 0%,rgba(6,10,7,0) 100%)}
 /* Used to fade all the way to transparent by ~78% up, which left the
    headline - sitting well above the bottom third, right over the lit
@@ -321,7 +329,12 @@ html{scroll-behavior:smooth}
    ever taking effect. */
 @media(max-width:680px){
   .hero{min-height:74vh}
-  .hero-content{padding:150px 20px 28px}
+  /* The header got taller on this breakpoint once "List your property"
+     and "Chat with us on WhatsApp" kept their full wording instead of
+     shrinking to bare icons - they wrap onto their own rows under the
+     logo now, so the fixed header sits noticeably lower than it used to,
+     and this has to clear it or the heading renders half behind it. */
+  .hero-content{padding:280px 20px 28px}
   .hero-content h1{font-size:30px}
   .hero-content p{font-size:16.5px;margin-top:12px}
   .ticker{margin-bottom:14px}
@@ -635,7 +648,16 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 .gate-choice strong{font-family:var(--f-display);font-size:16.5px;font-weight:600}
 .gate-choice span{color:var(--muted);font-size:13.5px}
 .d-pic{height:clamp(220px,46vh,420px);flex:none;background:var(--sky);position:relative}
-.d-pic svg,.d-pic img{width:100%;height:100%;display:block;object-fit:cover}
+.d-pic svg{width:100%;height:100%;display:block;object-fit:cover}
+/* A 3-slide filmstrip (prev/current/next) that the finger drags in real
+   time, instead of swapping the image outright on release - the previous
+   version only looked at touchstart+touchend, so the old photo vanished
+   and the new one just appeared with nothing in between. */
+.pic-viewport{position:absolute;inset:0;overflow:hidden;touch-action:pan-y}
+.pic-track{display:flex;width:300%;height:100%;transform:translate3d(-100%,0,0);will-change:transform}
+.pic-slide{flex:0 0 33.3333%;width:33.3333%;height:100%}
+.pic-slide img{width:100%;height:100%;object-fit:cover;display:block;-webkit-user-drag:none;user-select:none}
+#lightbox .pic-slide img{object-fit:contain}
 .pic-nav{position:absolute;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;
   background:rgba(0,0,0,.45);border:none;display:grid;place-items:center;cursor:pointer;color:#fff;padding:0}
 .pic-nav svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -650,7 +672,6 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
    black, same prev/next and counter as the one inside the listing popup
    but filling the whole screen instead of a clamp(220px,46vh,420px) box. */
 #lightbox{padding:0;background:#000;z-index:1300}
-#lightbox img{max-width:100%;max-height:100%;object-fit:contain;touch-action:pan-y}
 #lightbox .pic-nav{z-index:1}
 .lightbox-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;font-size:22px;line-height:1;display:grid;place-items:center;z-index:1}
 .lightbox-close:hover{background:rgba(255,255,255,.3)}
@@ -1221,7 +1242,7 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
   <button type="button" class="pic-nav pic-prev" id="lightboxPrev" aria-label="Previous photo">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>
   </button>
-  <img id="lightboxImg" src="" alt="">
+  <div class="pic-viewport" id="lightboxViewport"></div>
   <button type="button" class="pic-nav pic-next" id="lightboxNext" aria-label="Next photo">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
   </button>
@@ -2882,67 +2903,123 @@ document.addEventListener("keydown", e => {
 
 /* ---------------- detail + calculator ---------------- */
 const dlg = $("detail");
-let current = null, animFrom = 0, lastTotal = 0, picIndex = 0, moneyRAF = null;
+let current = null, animFrom = 0, lastTotal = 0, picIndex = 0, moneyRAF = null, dPicTrack = null;
 let pendingRoom = null; // the specific room someone's about to ask to view, or null for "view whole property"
 
+/* A 3-slide filmstrip (prev/current/next) that follows the finger in real
+   time while dragging, then either finishes the swipe or snaps back on
+   release - built once per viewport (the touch listeners and the slide
+   <img> elements are never torn down mid-gesture) and just re-pointed at
+   new photos on every render() call. */
+function createSwipeTrack(viewport){
+  viewport.innerHTML = `<div class="pic-track">
+    <div class="pic-slide"><img alt=""></div>
+    <div class="pic-slide"><img alt=""></div>
+    <div class="pic-slide"><img alt=""></div>
+  </div>`;
+  const track = viewport.querySelector(".pic-track");
+  const imgs = track.querySelectorAll("img");
+  let width = 0, startX = null, startY = null, dx = 0, axis = null, moved = false, lastTouchAt = 0;
+  let changeCb = null, tapCb = null;
+
+  function setX(px, animate){
+    track.style.transition = animate ? "transform .28s cubic-bezier(.22,.61,.36,1)" : "none";
+    track.style.transform = `translate3d(calc(-100% + ${px}px),0,0)`;
+  }
+
+  function render(photos, index){
+    if(!photos.length) return;
+    const n = photos.length, prevI = (index - 1 + n) % n, nextI = (index + 1) % n;
+    imgs[0].src = photos[prevI];
+    imgs[1].src = photos[index];
+    imgs[2].src = photos[nextI];
+    setX(0, false);
+  }
+
+  viewport.addEventListener("touchstart", e => {
+    if(e.touches.length !== 1) return;
+    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+    dx = 0; axis = null; moved = false;
+    width = viewport.clientWidth;
+  }, {passive:true});
+
+  viewport.addEventListener("touchmove", e => {
+    if(startX === null) return;
+    const ddx = e.touches[0].clientX - startX, ddy = e.touches[0].clientY - startY;
+    if(axis === null) axis = Math.abs(ddx) > Math.abs(ddy) ? "x" : "y";
+    if(axis !== "x") return;
+    dx = ddx; moved = true;
+    setX(dx, false);
+  }, {passive:true});
+
+  viewport.addEventListener("touchend", () => {
+    if(startX === null) return;
+    startX = null;
+    lastTouchAt = Date.now();
+    if(!moved){ if(tapCb) tapCb(); return; }
+    const past = Math.abs(dx) > Math.max(40, width * 0.22);
+    if(past && dx < 0){ setX(-width, true); track.addEventListener("transitionend", () => changeCb && changeCb(1), {once:true}); }
+    else if(past && dx > 0){ setX(width, true); track.addEventListener("transitionend", () => changeCb && changeCb(-1), {once:true}); }
+    else setX(0, true);
+  }, {passive:true});
+
+  // Real touches are handled above; this covers a plain mouse click (no
+  // preceding touch) on a non-touch device. Touch devices fire a synthetic
+  // click right after touchend too, so it's ignored there to avoid acting
+  // on the same tap twice.
+  viewport.addEventListener("click", () => {
+    if(Date.now() - lastTouchAt < 500) return;
+    if(tapCb) tapCb();
+  });
+
+  return { render, onSwipe(fn){ changeCb = fn; }, onTap(fn){ tapCb = fn; } };
+}
+
 /* the main photo in the detail popup, with prev/next when there's more than
-   one, swipe either way on a touch screen, and a tap opens the same photo
-   full screen (see openLightbox) - none of that applies to the inline SVG
-   placeholder art a photo-less demo listing falls back to, only real
-   photos. */
+   one, a smooth drag-following swipe either way on a touch screen, and a
+   tap opens the same photo full screen (see openLightbox) - none of that
+   applies to the inline SVG placeholder art a photo-less demo listing
+   falls back to, only real photos. */
 function renderPic(){
   const photos = current.photos || [];
-  if(!photos.length){ $("dPic").innerHTML = pic(current); return; }
+  if(!photos.length){ $("dPic").innerHTML = pic(current); dPicTrack = null; return; }
   if(picIndex < 0) picIndex = photos.length - 1;
   if(picIndex >= photos.length) picIndex = 0;
   const multi = photos.length > 1;
-  $("dPic").innerHTML = `
-    <img src="${photos[picIndex]}" alt="" loading="lazy">
-    ${multi ? `
-    <button type="button" class="pic-nav pic-prev" aria-label="Previous photo">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>
-    </button>
-    <button type="button" class="pic-nav pic-next" aria-label="Next photo">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
-    </button>
-    <span class="pic-count">${picIndex + 1} / ${photos.length}</span>` : ""}`;
-  if(multi){
+  if(!dPicTrack){
+    $("dPic").innerHTML = `
+      <div class="pic-viewport"></div>
+      <button type="button" class="pic-nav pic-prev" aria-label="Previous photo">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5 8 12l7 7"/></svg>
+      </button>
+      <button type="button" class="pic-nav pic-next" aria-label="Next photo">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <span class="pic-count"></span>`;
+    dPicTrack = createSwipeTrack($("dPic").querySelector(".pic-viewport"));
+    dPicTrack.onSwipe(dir => { picIndex += dir; renderPic(); });
+    dPicTrack.onTap(() => openLightbox());
     $("dPic").querySelector(".pic-prev").onclick = e => { e.stopPropagation(); picIndex--; renderPic(); };
     $("dPic").querySelector(".pic-next").onclick = e => { e.stopPropagation(); picIndex++; renderPic(); };
   }
-  $("dPic").querySelector("img").onclick = () => openLightbox();
-}
-// Wired once, not inside renderPic() - #dPic's own element is never
-// replaced (only its innerHTML is), so adding this on every render would
-// stack up a fresh listener each time instead of reusing one.
-addSwipeHandler($("dPic"), () => { picIndex--; renderPic(); }, () => { picIndex++; renderPic(); });
-
-/* Tap-anywhere-and-drag, released past a small threshold, counts as a swipe
-   - left to go forward, right to go back, same gesture as a TikTok-style
-   feed. Only wired up where there's more than one photo to move between. */
-function addSwipeHandler(el, onPrev, onNext){
-  let startX = null, startY = null;
-  el.addEventListener("touchstart", e => {
-    if(e.touches.length !== 1) return;
-    startX = e.touches[0].clientX; startY = e.touches[0].clientY;
-  }, {passive:true});
-  el.addEventListener("touchend", e => {
-    if(startX === null) return;
-    const dx = e.changedTouches[0].clientX - startX;
-    const dy = e.changedTouches[0].clientY - startY;
-    startX = null;
-    if(Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return; // not a clean horizontal swipe
-    if(dx < 0) onNext(); else onPrev();
-  }, {passive:true});
+  dPicTrack.render(photos, picIndex);
+  $("dPic").querySelectorAll(".pic-nav").forEach(b => b.hidden = !multi);
+  const count = $("dPic").querySelector(".pic-count");
+  count.hidden = !multi;
+  if(multi) count.textContent = `${picIndex + 1} / ${photos.length}`;
 }
 
 /* Full-screen photo view - the same picIndex as the popup's own photo, so
    swiping or using the arrows in either place stays in sync with the
    other. */
+const lightboxTrack = createSwipeTrack($("lightboxViewport"));
+lightboxTrack.onSwipe(dir => { picIndex += dir; renderPic(); renderLightbox(); });
 function renderLightbox(){
   const photos = (current && current.photos) || [];
   if(!photos.length) return;
-  $("lightboxImg").src = photos[picIndex];
+  if(picIndex < 0) picIndex = photos.length - 1;
+  if(picIndex >= photos.length) picIndex = 0;
+  lightboxTrack.render(photos, picIndex);
   const multi = photos.length > 1;
   $("lightboxPrev").hidden = !multi;
   $("lightboxNext").hidden = !multi;
@@ -2956,8 +3033,6 @@ function openLightbox(){
 $("lightboxClose").onclick = () => closeDialogEl($("lightbox"));
 $("lightboxPrev").onclick = () => { picIndex--; renderPic(); renderLightbox(); };
 $("lightboxNext").onclick = () => { picIndex++; renderPic(); renderLightbox(); };
-$("lightbox").addEventListener("click", e => { if(e.target === $("lightbox")) closeDialogEl($("lightbox")); });
-addSwipeHandler($("lightbox"), () => { picIndex--; renderPic(); renderLightbox(); }, () => { picIndex++; renderPic(); renderLightbox(); });
 
 function countTo(el, to){
   if(moneyRAF !== null){ cancelAnimationFrame(moneyRAF); moneyRAF = null; }
