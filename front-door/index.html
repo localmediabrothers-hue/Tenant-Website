@@ -396,6 +396,14 @@ html{scroll-behavior:smooth}
 
 /* ================= cards ================= */
 .results{display:grid;gap:22px;padding:14px 0 10px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+/* The populated state (real cards, as opposed to the loading skeleton or
+   the "nothing matches" message, which still want the grid above) scrolls
+   sideways instead of wrapping - a free drag/swipe, not a snap, so the
+   next card can sit half-revealed at rest instead of jumping fully into
+   view only on release. */
+.results.scrollrow{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.results.scrollrow::-webkit-scrollbar{display:none}
+.results.scrollrow .card{flex:0 0 300px;width:300px}
 .card{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow-1);display:flex;flex-direction:column;
   opacity:0;transform:translateY(30px) scale(.98);
   transition:opacity .6s cubic-bezier(.2,.8,.3,1),transform .55s cubic-bezier(.2,.8,.3,1),box-shadow .25s ease,border-color .25s ease}
@@ -2699,6 +2707,7 @@ $("provSubmit").onclick = async () => {
 
 function render(){
   if(homesState === "loading"){
+    results.classList.remove("scrollrow");
     countEl.innerHTML = `<b>Looking</b> for what's available&hellip;`;
     results.innerHTML = Array.from({length:3}, () => `
       <div class="skel" aria-hidden="true">
@@ -2710,6 +2719,7 @@ function render(){
   }
 
   if(homesState === "empty" || homesState === "error"){
+    results.classList.remove("scrollrow");
     countEl.innerHTML = `<b>Nothing</b> available right now`;
     results.innerHTML = `<div class="empty">
       <h3>Nothing available right now</h3>
@@ -2728,6 +2738,7 @@ function render(){
     : `<b>Nothing</b> matches that yet`;
 
   if(!list.length){
+    results.classList.remove("scrollrow");
     results.innerHTML = `<div class="empty"><h3>Nothing matches that yet</h3>
       <p>Try a different area, or look at every type of home.</p>
       <button class="btn btn-2" type="button" id="reset">Show everything</button>
@@ -2742,7 +2753,12 @@ function render(){
     return;
   }
 
-  results.innerHTML = list.map((h, i) => `
+  /* The scrolling strip only ever carries the latest 10 matching places -
+     every match still counts in the number above and still shows up on
+     the map, this just keeps the strip itself from growing without
+     bound. */
+  const shown = list.slice(0, 10);
+  const cardHTML = (h, i) => `
     <article class="card" data-idx="${i}">
       <button class="hit" type="button" data-id="${h.id}" aria-label="See ${h.title}, ${h.addr}"></button>
       <button class="heart" type="button" data-save="${h.id}" aria-pressed="${saved.includes(String(h.id))}"
@@ -2764,7 +2780,17 @@ function render(){
           : `<div class="allin"><b>Nothing available right now</b></div>`}
         <div class="tags">${h.tags.map(t => `<span class="tag ${t[0]}">${t[1]}</span>`).join("")}</div>
       </div>
-    </article>`).join("");
+    </article>`;
+
+  results.classList.add("scrollrow");
+  /* A clone of the same cards is appended right after the real ones so
+     the scroll-loop below has something identical to land on - the
+     reset (snapping scrollLeft back by exactly one set's width once
+     you've scrolled into the clone) is invisible since the clone looks
+     exactly like the start of the set it's continuing from. Only worth
+     doing with more than one card; one card can't meaningfully loop. */
+  results.innerHTML = shown.map(cardHTML).join("")
+    + (shown.length > 1 ? shown.map((h, i) => cardHTML(h, i + shown.length)).join("") : "");
 
   results.querySelectorAll(".hit").forEach(b => {
     b.onclick = () => openDetail(HOMES.find(h => String(h.id) === b.dataset.id));
@@ -2785,9 +2811,24 @@ function render(){
     });
   });
 
+  results.scrollLeft = 0;
+  loopWidth = shown.length > 1
+    ? results.children[shown.length].getBoundingClientRect().left - results.children[0].getBoundingClientRect().left
+    : 0;
+
   observeCards();
   if(mapVisible) refreshMapMarkers();
 }
+
+/* Keeps the results strip scrolling forever in one direction instead of
+   stopping dead at the last card - once you've dragged past the real
+   cards into the identical clone set tacked on after them, it silently
+   jumps scrollLeft back by exactly one set-width, landing you back on
+   the equivalent real card with no visible jump. */
+let loopWidth = 0;
+results.addEventListener("scroll", () => {
+  while(loopWidth > 0 && results.scrollLeft >= loopWidth) results.scrollLeft -= loopWidth;
+}, {passive:true});
 
 /* each card lifts in as it reaches the viewport, numbers ticking up with it */
 const cardIO = new IntersectionObserver(entries => {
