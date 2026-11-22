@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://front-door.pages.dev/sitemap.xml
+Sitemap: https://myroomlink.co.uk/sitemap.xml
