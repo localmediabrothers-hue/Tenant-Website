@@ -1068,8 +1068,8 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
       <div class="help-grid">
         <div class="reveal">
           <div class="n">1</div>
-          <h3>Browse</h3>
-          <p>Have a look at rooms and areas you're interested in that match what you're looking for. When you're interested, register your interest and someone will reach out to you.</p>
+          <h3 id="stepOneTitle">Browse</h3>
+          <p id="stepOneBody">Have a look at rooms and areas you're interested in that match what you're looking for. When you're interested, register your interest and someone will reach out to you.</p>
         </div>
         <div class="reveal">
           <div class="n">2</div>
@@ -1375,7 +1375,7 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
   <div class="gate-choices">
     <button type="button" class="gate-choice" id="gateTenant">
       <strong>I'm looking for a place</strong>
-      <span>Browse rooms and flats to rent</span>
+      <span id="gateTenantSub">Browse rooms and flats to rent</span>
     </button>
     <button type="button" class="gate-choice" id="gateProvider">
       <strong>I have a property to list</strong>
@@ -3467,6 +3467,12 @@ if(!LISTINGS_LIVE){
   $("liveStats").hidden = true;
   const browseLink = document.querySelector('.sectionnav a[href="#results"]');
   if(browseLink) browseLink.hidden = true;
+  // Two other spots describe browsing a list that isn't shown right now -
+  // swapped for copy that matches what's actually here (the form), rather
+  // than promising something to look at that isn't there.
+  $("stepOneTitle").textContent = "Tell us what you need";
+  $("stepOneBody").textContent = "Fill in a few details about the room you're after - area, size, budget - and we'll match you to one the moment it's free.";
+  $("gateTenantSub").textContent = "Tell us what you're looking for";
 }
 
 /* ---------------- entry gate ----------------
