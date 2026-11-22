@@ -813,8 +813,9 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
 .eq-row{margin-bottom:12px}
 .eq-row label{display:block;font-weight:600;font-size:15px;margin-bottom:6px}
 .eq-opt{font-weight:400;color:var(--muted);font-size:13.5px}
-.eq-row input,.eq-row select{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:8px;background:var(--surface);font-size:16px}
-.eq-row input:focus,.eq-row select:focus{border-color:var(--accent);outline:none}
+.eq-row input,.eq-row select,.eq-row textarea{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:8px;background:var(--surface);font-size:16px;font-family:inherit}
+.eq-row input:focus,.eq-row select:focus,.eq-row textarea:focus{border-color:var(--accent);outline:none}
+.eq-row textarea{resize:vertical;min-height:80px}
 .enquire .btn{width:100%;margin-top:4px}
 .eq-note{margin:12px 0 0;font-size:14px;color:var(--muted)}
 .eq-done{text-align:center;padding:8px 0 4px}
@@ -1512,6 +1513,14 @@ const SUPABASE_URL = "https://ntiyuoytqsqnbhfzmjma.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_xk9WqdKf9JxvWMHtPc-shA_MA10bK6g";
 const SUPABASE_CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT");
 
+/* Flip to true once there are enough real properties live to make
+   browsing worth showing again - until then the whole search/filter/
+   results/map section is skipped so the site goes straight from the
+   hero to the "Find me a room" form instead of showing an almost-empty
+   list. Data still loads normally underneath, so flipping this back on
+   needs no other change. */
+const LISTINGS_LIVE = false;
+
 /* ---------------- contact details ----------------
    One place to update if the phone/WhatsApp number ever changes - every
    "call us" link and toast message on the page reads from here. */
@@ -1579,7 +1588,7 @@ async function loadPublicStats(){
     if(parts.length){ el.innerHTML = parts.join(" &middot; "); el.hidden = false; }
   }catch(e){ /* the stat line just doesn't show - not worth a console warning */ }
 }
-loadPublicStats();
+if(LISTINGS_LIVE) loadPublicStats();
 
 async function submitEnquiryToPortal(h, { name, phone, email, when, benefits, roomId }){
   if(!SUPABASE_CONFIGURED){
@@ -2464,6 +2473,10 @@ function mountWaitlist(el, title = "Join the waiting list", buttonLabel = "Join 
         <option value="no">No, not claiming benefits at all</option>
       </select>
     </div>
+    <div class="eq-row">
+      <label for="wlNote">Anything specific you need? <span class="eq-opt">(optional)</span></label>
+      <textarea id="wlNote" rows="3" placeholder="e.g. I need an ensuite, ground floor only, step-free access…"></textarea>
+    </div>
     <button class="btn" type="button" id="wlSend" data-label="${esc(buttonLabel)}">${esc(buttonLabel)}</button>
   </div>`;
   $("wlSend").onclick = submitWaitlist;
@@ -2475,6 +2488,7 @@ async function submitWaitlist(){
   const email = $("wlEmail").value.trim();
   const area = $("wlArea").value.trim();
   const benefits = $("wlBenefits").value;
+  const note = $("wlNote").value.trim();
   if(name.length < 2){ toast("We just need your name first."); $("wlName").focus(); return; }
   if(phone.length < 9){ toast("That number looks too short — can you check it?"); $("wlPhone").focus(); return; }
   if(email && !email.includes("@")){ toast("That email doesn't look quite right."); $("wlEmail").focus(); return; }
@@ -2489,6 +2503,7 @@ async function submitWaitlist(){
       headers:{ apikey:SUPABASE_ANON_KEY, Authorization:`Bearer ${SUPABASE_ANON_KEY}`, "Content-Type":"application/json" },
       body: JSON.stringify({ name, phone, email: email || null, area: area || null,
         bedrooms_needed: bedFilter.value ? Number(bedFilter.value) : null,
+        note: note || null,
         claiming_benefits: benefits === "uc_standard" || benefits === "two_plus" })
     });
     if(!res.ok) throw new Error(`waitlist failed: ${res.status}`);
@@ -3443,6 +3458,16 @@ document.querySelectorAll(".reveal").forEach(el => io.observe(el));
 render();
 loadLiveProperties();
 mountWaitlist($("findRoomForm"), "Find me a room", "Find me a room");
+
+if(!LISTINGS_LIVE){
+  $("searchForm").hidden = true;
+  document.querySelector('section[aria-labelledby="filterlabel"]').hidden = true;
+  $("mapView").hidden = true;
+  $("results").hidden = true;
+  $("liveStats").hidden = true;
+  const browseLink = document.querySelector('.sectionnav a[href="#results"]');
+  if(browseLink) browseLink.hidden = true;
+}
 
 /* ---------------- entry gate ----------------
    Shown before anything else so a landlord doesn't have to hunt for "List
