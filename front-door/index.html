@@ -3530,8 +3530,14 @@ document.querySelectorAll(".sectionnav a[href^='#']").forEach(a => {
 });
 // Skip the gate on a shared listing link - someone arriving at a specific
 // property via a sent link should land straight on it, not be asked to
-// pick a role first.
-if(!/^#home-/.test(location.hash)) openDialogEl(gateDlg);
+// pick a role first. Same idea for a direct link/QR code straight to the
+// "Find me a room" form (e.g. on a leaflet) - already self-selected as a
+// tenant by what they scanned, so there's no role to ask them to pick.
+if(location.hash === "#findRoom"){
+  setTimeout(() => $("findRoom").scrollIntoView({behavior: REDUCED ? "auto" : "smooth", block: "start"}), 50);
+}else if(!/^#home-/.test(location.hash)){
+  openDialogEl(gateDlg);
+}
 </script>
 </body>
 </html>
