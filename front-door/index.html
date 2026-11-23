@@ -1526,6 +1526,13 @@ const SUPABASE_CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT");
    needs no other change. */
 const LISTINGS_LIVE = false;
 
+/* Temporary toggle to hide the header/footer WhatsApp buttons without
+   deleting anything - flip back to true to bring them back. The
+   form-embedded WhatsApp links (find-room result, partners CTA) are left
+   alone since they're part of a specific flow rather than a standalone
+   button. */
+const WHATSAPP_BUTTON_LIVE = false;
+
 /* ---------------- contact details ----------------
    One place to update if the phone/WhatsApp number ever changes - every
    "call us" link and toast message on the page reads from here. */
@@ -1552,6 +1559,10 @@ Questions I have: `;
   const nav = document.getElementById("whatsappNav"), foot = document.getElementById("whatsappFoot");
   if(nav) nav.href = link;
   if(foot) foot.href = link;
+  if(!WHATSAPP_BUTTON_LIVE){
+    if(nav) nav.hidden = true;
+    if(foot) foot.hidden = true;
+  }
   const findRoom = document.getElementById("findRoomWhatsapp");
   if(findRoom) findRoom.href = link;
   const partners = document.getElementById("partnersWhatsapp");
