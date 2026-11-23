@@ -1012,7 +1012,7 @@ dialog.is-open{display:flex;animation:fade .3s ease forwards}
       <h2>Find me a room</h2>
       <p>Tell us what you need and we'll match you to a room the moment one's free — no need to keep checking back.</p>
       <div class="waitlist" id="findRoomForm"></div>
-      <div class="quick-contact">
+      <div class="quick-contact" id="findRoomQuickContact">
         <div class="quick-contact-or"><span>or</span></div>
         <div class="quick-contact-box">
           <div>
@@ -1526,11 +1526,12 @@ const SUPABASE_CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT");
    needs no other change. */
 const LISTINGS_LIVE = false;
 
-/* Temporary toggle to hide the header/footer WhatsApp buttons without
-   deleting anything - flip back to true to bring them back. The
-   form-embedded WhatsApp links (find-room result, partners CTA) are left
-   alone since they're part of a specific flow rather than a standalone
-   button. */
+/* Temporary toggle to hide the header/footer WhatsApp buttons and the
+   WhatsApp option at the end of the "Find me a room" form, without
+   deleting anything - flip back to true to bring them all back. The
+   WhatsApp link shown after joining the waitlist and the partners CTA are
+   left alone since they're part of a specific flow rather than a
+   standalone button. */
 const WHATSAPP_BUTTON_LIVE = false;
 
 /* ---------------- contact details ----------------
@@ -1562,6 +1563,8 @@ Questions I have: `;
   if(!WHATSAPP_BUTTON_LIVE){
     if(nav) nav.hidden = true;
     if(foot) foot.hidden = true;
+    const findRoomQuickContact = document.getElementById("findRoomQuickContact");
+    if(findRoomQuickContact) findRoomQuickContact.hidden = true;
   }
   const findRoom = document.getElementById("findRoomWhatsapp");
   if(findRoom) findRoom.href = link;
@@ -2478,7 +2481,7 @@ function mountWaitlist(el, title = "Join the waiting list", buttonLabel = "Join 
     <p class="eq-lead">Leave your details and we'll be in touch the moment something matches.</p>
     <div class="eq-row"><label for="wlName">Your name</label><input id="wlName" type="text" autocomplete="name"></div>
     <div class="eq-row"><label for="wlPhone">Phone number</label><input id="wlPhone" type="tel" autocomplete="tel" inputmode="tel"></div>
-    <div class="eq-row"><label for="wlEmail">Email <span class="eq-opt">(if you have one)</span></label><input id="wlEmail" type="email" inputmode="email" autocomplete="email"></div>
+    <div class="eq-row"><label for="wlEmail">Email</label><input id="wlEmail" type="email" inputmode="email" autocomplete="email"></div>
     <div class="eq-row"><label for="wlArea">Area you're looking in <span class="eq-opt">(optional)</span></label><input id="wlArea" type="text" placeholder="e.g. Peckham, SE15"></div>
     <div class="eq-row">
       <label for="wlBenefits">Are you claiming benefits?</label>
@@ -2508,7 +2511,7 @@ async function submitWaitlist(){
   const note = $("wlNote").value.trim();
   if(name.length < 2){ toast("We just need your name first."); $("wlName").focus(); return; }
   if(phone.length < 9){ toast("That number looks too short — can you check it?"); $("wlPhone").focus(); return; }
-  if(email && !email.includes("@")){ toast("That email doesn't look quite right."); $("wlEmail").focus(); return; }
+  if(!email || !email.includes("@")){ toast("We need an email address to keep you updated."); $("wlEmail").focus(); return; }
   if(!benefits){ toast("Please let us know if you're claiming benefits."); $("wlBenefits").focus(); return; }
 
   const btn = $("wlSend");
