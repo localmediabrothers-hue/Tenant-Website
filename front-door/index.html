@@ -1526,12 +1526,12 @@ const SUPABASE_CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT");
    needs no other change. */
 const LISTINGS_LIVE = false;
 
-/* Temporary toggle to hide the header/footer WhatsApp buttons and the
-   WhatsApp option at the end of the "Find me a room" form, without
-   deleting anything - flip back to true to bring them all back. The
-   WhatsApp link shown after joining the waitlist and the partners CTA are
-   left alone since they're part of a specific flow rather than a
-   standalone button. */
+/* Temporary toggle to hide every WhatsApp button/link on the site - the
+   header/footer buttons, the WhatsApp option at the end of the "Find me a
+   room" form, and the "chat with us on WhatsApp" line shown after joining
+   the waiting list - without deleting anything. Flip back to true to
+   bring them all back at once. The partners (council/support worker) CTA
+   is left alone since that's a separate flow. */
 const WHATSAPP_BUTTON_LIVE = false;
 
 /* ---------------- contact details ----------------
@@ -2528,7 +2528,7 @@ async function submitWaitlist(){
     });
     if(!res.ok) throw new Error(`waitlist failed: ${res.status}`);
     const box = btn.closest(".enquire");
-    if(box) box.innerHTML = `<h4>You're on the list</h4><p class="eq-lead">We'll be in touch on ${esc(phone)} the moment something matches. If you'd rather talk now, <a href="${whatsappLink("Hi, I've just joined the waiting list on the My Room Link website.")}" target="_blank" rel="noreferrer">chat with us on WhatsApp</a>.</p>`;
+    if(box) box.innerHTML = `<h4>You're on the list</h4><p class="eq-lead">We'll be in touch on ${esc(phone)} the moment something matches.${WHATSAPP_BUTTON_LIVE ? ` If you'd rather talk now, <a href="${whatsappLink("Hi, I've just joined the waiting list on the My Room Link website.")}" target="_blank" rel="noreferrer">chat with us on WhatsApp</a>.` : ""}</p>`;
   }catch(e){
     console.error("[My Room Link] Waiting list signup failed:", e);
     btn.disabled = false; btn.textContent = btn.dataset.label;
